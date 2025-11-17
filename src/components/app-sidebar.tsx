@@ -2,15 +2,11 @@
 
 import * as React from "react"
 import {
-  IconCamera,
   IconChartBar,
   IconDashboard,
-  IconFileAi,
-  IconFileDescription,
   IconFolder,
   IconHelp,
-  IconInnerShadowTop,
-  IconListDetails,
+  IconInnerShadowTop, IconInvoice,
   IconSearch,
   IconSettings,
   IconUsers,
@@ -38,92 +34,44 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      pathname: "/",
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
-      url: "#",
-      icon: IconListDetails,
+      title: "Quotes",
+      pathname: "/quotes",
+      icon: IconInvoice,
     },
     {
       title: "Analytics",
-      url: "#",
+      pathname: "#",
       icon: IconChartBar,
     },
     {
       title: "Projects",
-      url: "#",
+      pathname: "#",
       icon: IconFolder,
     },
     {
       title: "Team",
-      url: "#",
+      pathname: "#",
       icon: IconUsers,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
     },
   ],
   navSecondary: [
     {
       title: "Settings",
-      url: "#",
+      pathname: "#",
       icon: IconSettings,
     },
     {
       title: "Get Help",
-      url: "#",
+      pathname: "#",
       icon: IconHelp,
     },
     {
       title: "Search",
-      url: "#",
+      pathname: "#",
       icon: IconSearch,
     },
   ]
