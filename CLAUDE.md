@@ -16,32 +16,41 @@ SaaS B2B de **gestion financière** pour TPE et indépendants.
 - **Multi-tenant** - Isolation par `companyId`
 
 ## Structure du projet
-
 ```
 src/
 ├── app/
-│   ├── (login)/           # Routes publiques (sign-in)
+│   ├── (login)/           # Routes publiques
 │   ├── admin/             # Routes protégées
-│   │   ├── (dashboard)/   # Pages principales
-│   │   └── quotes/        # Gestion devis
-│   └── api/user/          # REST endpoint user
+│   │   ├── (dashboard)/
+│   │   ├── quotes/
+│   │   ├── invoices/
+│   │   ├── clients/
+│   │   └── settings/
+│   └── api/               # API Routes
 │
 ├── components/
-│   ├──  ui/                # shadcn/ui components
-│   └── composant-xyz.tsx   # composants utilisés dans l'app
+│   ├── ui/                # Shadcn/ui
+│   ├── layout/            # Header, Sidebar
+│   ├── quotes/            # Composants devis
+│   └── shared/            # Réutilisables
 │
 ├── lib/
-│   ├── auth/
-│   │   └── session.ts     # JWT & cookies
-│   ├── db/
-│   │   ├── schema.ts      # Tables Drizzle
-│   │   ├── queries.ts     # Requêtes centralisées
-│   │   ├── drizzle.ts     # Connexion DB
-│   │   └── seed.ts        # Seed (test@test.com / admin123)
-│   └── utils.ts           # cn() helper
+│   ├── auth/              # JWT & session
+│   ├── db/                # Drizzle schema + queries
+│   ├── tenant.ts          # Multi-tenant
+│   └── utils.ts
 │
-└── hooks/
-    └── use-mobile.ts
+├── actions/               # Server Actions
+│   ├── auth.actions.ts
+│   ├── quotes.actions.ts
+│   └── invoices.actions.ts
+│
+├── hooks/                 # Hooks personnalisés
+│
+└── types/                 # Types TypeScript
+    ├── index.ts
+    ├── quotes.types.ts
+    └── ...
 ```
 
 ## Commandes

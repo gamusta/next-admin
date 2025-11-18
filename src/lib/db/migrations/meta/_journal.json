@@ -8,6 +8,13 @@
       "when": 1763425965721,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1763492868762,
+      "tag": "0002_quotes-invoices",
+      "breakpoints": true
     }
   ]
 }
