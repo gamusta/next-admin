@@ -6,6 +6,7 @@ import { users } from '@/lib/db/schema';
 import { comparePasswords, setSession } from './session';
 import { eq } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 const signInSchema = z.object({
   email: z.string().email('Email invalide'),
@@ -54,4 +55,9 @@ export async function signIn(formData: FormData) {
   }
 
   redirect('/admin');
+}
+
+export async function signOut() {
+  (await cookies()).delete('session');
+  redirect('/sign-in');
 }

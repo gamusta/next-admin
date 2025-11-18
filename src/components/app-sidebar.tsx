@@ -34,12 +34,12 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      pathname: "/",
+      pathname: "/admin",
       icon: IconDashboard,
     },
     {
       title: "Quotes",
-      pathname: "/quotes",
+      pathname: "/admin/quotes",
       icon: IconInvoice,
     },
     {
