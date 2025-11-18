@@ -13,7 +13,7 @@ SaaS B2B de **gestion financière** pour TPE et indépendants.
 - **shadcn/ui** + **Tailwind CSS** - Interface
 - **Jose** - Auth JWT (cookies httpOnly, 1 jour)
 - **Stripe** - Paiements
-- **Multi-tenant** - Isolation par `teamId`
+- **Multi-tenant** - Isolation par `companyId`
 
 ## Structure du projet
 
@@ -27,7 +27,8 @@ src/
 │   └── api/user/          # REST endpoint user
 │
 ├── components/
-│   └── ui/                # shadcn/ui components
+│   ├──  ui/                # shadcn/ui components
+│   └── composant-xyz.tsx   # composants utilisés dans l'app
 │
 ├── lib/
 │   ├── auth/
@@ -80,17 +81,13 @@ npm run db:seed          # Seed DB
 
 ## Tables principales
 
-- **users** - Comptes (email, passwordHash, role)
-- **teams** - Organisations (multi-tenant)
-- **teamMembers** - Relation users ↔ teams
-- **activityLogs** - Logs par équipe
-- **invitations** - Invitations en attente
+- **users** - Comptes (email, password, role)
+- **companies** - Company (multi-tenant)
+- **company_users** - Relation companies ↔ users avec role
 
 ## Variables d'environnement
 
 ```env
 POSTGRES_URL=postgresql://...
-AUTH_SECRET=***  # openssl rand -base64 32
-STRIPE_SECRET_KEY=sk_test_...
 BASE_URL=http://localhost:3000
 ```
