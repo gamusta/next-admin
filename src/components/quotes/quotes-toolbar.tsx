@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DatePickerRange } from "@/components/ui/date-picker-range"
+import { AmountRangePicker } from "@/components/ui/amount-range-picker"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
@@ -34,7 +35,7 @@ export function QuotesToolbar<TData>({ table }: QuotesToolbarProps<TData>) {
 
   return (
     <div className="flex flex-col gap-4 rounded-lg border bg-card p-4">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {/* Recherche */}
         <div className="flex flex-col gap-2">
           <Label htmlFor="search" className="text-sm font-medium">
@@ -151,49 +152,35 @@ export function QuotesToolbar<TData>({ table }: QuotesToolbarProps<TData>) {
             placeholder="Sélectionner période"
           />
         </div>
-      </div>
 
-      {/* Filtre Montant HT */}
-      <div className="flex flex-col gap-2 md:flex-row md:items-end md:gap-4">
-        <div className="flex flex-1 flex-col gap-2">
-          <Label htmlFor="min-amount" className="text-sm font-medium">
-            Montant HT minimum (€)
-          </Label>
-          <Input
-            id="min-amount"
-            type="number"
-            placeholder="0"
-            value={minAmount}
-            onChange={(event) => {
-              const value = event.target.value
+        {/* Filtre Montant HT */}
+        <div className="flex flex-col gap-2">
+          <Label className="text-sm font-medium">Montant HT</Label>
+          <AmountRangePicker
+            min={minAmount}
+            max={maxAmount}
+            onMinChange={(value) => {
               setMinAmount(value)
               table.getColumn("subtotal")?.setFilterValue((old: [number?, number?] | undefined) => [
                 value ? parseFloat(value) : undefined,
                 old?.[1],
               ])
             }}
-          />
-        </div>
-        <div className="flex flex-1 flex-col gap-2">
-          <Label htmlFor="max-amount" className="text-sm font-medium">
-            Montant HT maximum (€)
-          </Label>
-          <Input
-            id="max-amount"
-            type="number"
-            placeholder="10000"
-            value={maxAmount}
-            onChange={(event) => {
-              const value = event.target.value
+            onMaxChange={(value) => {
               setMaxAmount(value)
               table.getColumn("subtotal")?.setFilterValue((old: [number?, number?] | undefined) => [
                 old?.[0],
                 value ? parseFloat(value) : undefined,
               ])
             }}
+            placeholder="Montant HT"
           />
         </div>
-        {columnFilters.length > 0 && (
+      </div>
+
+      {/* Bouton reset */}
+      {columnFilters.length > 0 && (
+        <div className="flex justify-end">
           <Button
             variant="ghost"
             onClick={() => {
@@ -209,8 +196,8 @@ export function QuotesToolbar<TData>({ table }: QuotesToolbarProps<TData>) {
             <IconX className="size-4" />
             Réinitialiser
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
