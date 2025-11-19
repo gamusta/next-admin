@@ -2,11 +2,10 @@
 
 import * as React from "react"
 import {
-  IconChartBar,
   IconDashboard,
   IconFolder,
   IconHelp,
-  IconInnerShadowTop, IconInvoice,
+  IconInnerShadowTop, IconInvoice, IconNotes,
   IconSearch,
   IconSettings,
   IconUsers,
@@ -38,14 +37,14 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Quotes",
+      title: "Devis",
       pathname: "/admin/quotes",
-      icon: IconInvoice,
+      icon: IconNotes,
     },
     {
-      title: "Analytics",
-      pathname: "#",
-      icon: IconChartBar,
+      title: "Facture",
+      pathname: "/admin/invoices",
+      icon: IconInvoice,
     },
     {
       title: "Projects",
