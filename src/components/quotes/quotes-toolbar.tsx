@@ -173,31 +173,15 @@ export function QuotesToolbar<TData>({ table }: QuotesToolbarProps<TData>) {
                 value ? parseFloat(value) : undefined,
               ])
             }}
+            onClear={() => {
+              setMinAmount("")
+              setMaxAmount("")
+              table.getColumn("subtotal")?.setFilterValue(undefined)
+            }}
             placeholder="Montant HT"
           />
         </div>
       </div>
-
-      {/* Bouton reset */}
-      {columnFilters.length > 0 && (
-        <div className="flex justify-end">
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setSelectedStatuses([])
-              setIssueDateRange(undefined)
-              setExpiryDateRange(undefined)
-              setMinAmount("")
-              setMaxAmount("")
-              table.resetColumnFilters()
-            }}
-            className="gap-2"
-          >
-            <IconX className="size-4" />
-            Réinitialiser
-          </Button>
-        </div>
-      )}
     </div>
   )
 }

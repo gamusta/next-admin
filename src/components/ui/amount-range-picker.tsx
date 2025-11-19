@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { IconChevronDown } from "@tabler/icons-react"
+import { IconChevronDown, IconX } from "@tabler/icons-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,6 +12,7 @@ interface AmountRangePickerProps {
   max?: string
   onMinChange?: (value: string) => void
   onMaxChange?: (value: string) => void
+  onClear?: () => void
   placeholder?: string
   className?: string
 }
@@ -31,6 +32,7 @@ export function AmountRangePicker({
   max,
   onMinChange,
   onMaxChange,
+  onClear,
   placeholder = "Montant HT",
   className,
 }: AmountRangePickerProps) {
@@ -38,23 +40,37 @@ export function AmountRangePicker({
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={`w-full justify-between font-normal ${className}`}
-        >
-          {hasValue ? (
-            <span>
-              {min && formatAmount(min)}
-              {min && max && " - "}
-              {max && formatAmount(max)}
-            </span>
-          ) : (
-            <span className="text-muted-foreground">{placeholder}</span>
-          )}
-          <IconChevronDown className="size-4" />
-        </Button>
-      </PopoverTrigger>
+      <div className="relative">
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={`w-full justify-between font-normal ${className}`}
+          >
+            {hasValue ? (
+              <span>
+                {min && formatAmount(min)}
+                {min && max && " - "}
+                {max && formatAmount(max)}
+              </span>
+            ) : (
+              <span className="text-muted-foreground">{placeholder}</span>
+            )}
+            <IconChevronDown className="size-4" />
+          </Button>
+        </PopoverTrigger>
+        {hasValue && onClear && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onClear()
+            }}
+            className="absolute right-8 top-1/2 -translate-y-1/2 rounded-sm opacity-70 hover:opacity-100 focus:outline-none"
+          >
+            <IconX className="size-4" />
+            <span className="sr-only">Effacer</span>
+          </button>
+        )}
+      </div>
       <PopoverContent className="w-80" align="start">
         <div className="space-y-4">
           <div className="space-y-2">
