@@ -9,15 +9,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DatePickerRange } from "@/components/ui/date-picker-range"
 import { AmountRangePicker } from "@/components/ui/amount-range-picker"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Separator } from "@/components/ui/separator"
+import { MultiSelectFilter, type FilterOption } from "@/components/ui/multi-select-filter"
 
 interface QuotesToolbarProps<TData> {
   table: Table<TData>
 }
 
-const statusOptions = [
+const statusOptions: FilterOption[] = [
   { value: "draft", label: "Brouillon" },
   { value: "to_send", label: "À envoyer" },
   { value: "pending", label: "En attente" },
@@ -58,69 +56,21 @@ export function QuotesToolbar<TData>({ table }: QuotesToolbarProps<TData>) {
         {/* Filtre Statut */}
         <div className="flex flex-col gap-2">
           <Label className="text-sm font-medium">Statut</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full justify-between">
-                {selectedStatuses.length > 0 ? (
-                  <span>
-                    {selectedStatuses.length} sélectionné{selectedStatuses.length > 1 ? "s" : ""}
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground">Tous les statuts</span>
-                )}
-                <IconChevronDown className="size-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[200px]" align="start">
-              <div className="space-y-2">
-                {statusOptions.map((option) => {
-                  const isSelected = selectedStatuses.includes(option.value)
-                  return (
-                    <div
-                      key={option.value}
-                      className="flex items-center space-x-2"
-                    >
-                      <Checkbox
-                        id={`status-${option.value}`}
-                        checked={isSelected}
-                        onCheckedChange={(checked) => {
-                          const newStatuses = checked
-                            ? [...selectedStatuses, option.value]
-                            : selectedStatuses.filter((s) => s !== option.value)
-                          setSelectedStatuses(newStatuses)
-                          table
-                            .getColumn("status")
-                            ?.setFilterValue(newStatuses.length > 0 ? newStatuses : undefined)
-                        }}
-                      />
-                      <label
-                        htmlFor={`status-${option.value}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                      >
-                        {option.label}
-                      </label>
-                    </div>
-                  )
-                })}
-                {selectedStatuses.length > 0 && (
-                  <>
-                    <Separator />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => {
-                        setSelectedStatuses([])
-                        table.getColumn("status")?.setFilterValue(undefined)
-                      }}
-                    >
-                      Effacer
-                    </Button>
-                  </>
-                )}
-              </div>
-            </PopoverContent>
-          </Popover>
+          <MultiSelectFilter
+            options={statusOptions}
+            selected={selectedStatuses}
+            onChange={(newStatuses) => {
+              setSelectedStatuses(newStatuses)
+              table
+                .getColumn("status")
+                ?.setFilterValue(newStatuses.length > 0 ? newStatuses : undefined)
+            }}
+            onClear={() => {
+              setSelectedStatuses([])
+              table.getColumn("status")?.setFilterValue(undefined)
+            }}
+            placeholder="Tous les statuts"
+          />
         </div>
 
         {/* Filtre Date émission */}
@@ -133,6 +83,10 @@ export function QuotesToolbar<TData>({ table }: QuotesToolbarProps<TData>) {
             onChange={(range) => {
               setIssueDateRange(range)
               table.getColumn("issueDate")?.setFilterValue(range)
+            }}
+            onClear={() => {
+              setIssueDateRange(undefined)
+              table.getColumn("issueDate")?.setFilterValue(undefined)
             }}
             placeholder="Sélectionner période"
           />
@@ -148,6 +102,10 @@ export function QuotesToolbar<TData>({ table }: QuotesToolbarProps<TData>) {
             onChange={(range) => {
               setExpiryDateRange(range)
               table.getColumn("expiryDate")?.setFilterValue(range)
+            }}
+            onClear={() => {
+              setExpiryDateRange(undefined)
+              table.getColumn("expiryDate")?.setFilterValue(undefined)
             }}
             placeholder="Sélectionner période"
           />
