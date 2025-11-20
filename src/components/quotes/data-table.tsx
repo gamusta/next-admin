@@ -24,21 +24,21 @@ import {
 import { QuotesToolbar } from "./quotes-toolbar"
 import { DataTablePagination } from "./data-table-pagination"
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
+interface DataTableProps<TData> {
+  columns: ColumnDef<TData, any>[]
   data: TData[]
   onFilteredDataChange?: (data: TData[]) => void
   statusFilter?: string | null
   onStatusFilterChange?: (statuses: string[] | null) => void
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData>({
   columns,
   data,
   onFilteredDataChange,
   statusFilter,
   onStatusFilterChange,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [pagination, setPagination] = React.useState({
@@ -46,54 +46,48 @@ export function DataTable<TData, TValue>({
     pageSize: 10,
   })
 
-  // Appliquer filtre status depuis parent (cards)
-  const prevStatusFilter = React.useRef(statusFilter)
-  React.useEffect(() => {
-    // Ne sync que si la valeur a vraiment changé
-    if (prevStatusFilter.current === statusFilter) return
-    prevStatusFilter.current = statusFilter
+  // Track si changement provient du parent (évite boucle)
+  const isUpdatingFromParent = React.useRef(false)
 
+  // Sync parent statusFilter → columnFilters
+  React.useEffect(() => {
     setColumnFilters((prev) => {
-      const currentStatusFilter = prev.find((f) => f.id === 'status')
+      const currentStatus = prev.find((f) => f.id === 'status')
+      const currentValue = currentStatus?.value as string[] | undefined
       const withoutStatus = prev.filter((f) => f.id !== 'status')
 
+      // Cas 1: Parent demande filtre single
       if (statusFilter) {
-        // Click card : appliquer filtre single statut
-        return [...withoutStatus, { id: 'status', value: [statusFilter] }]
-      } else {
-        // statusFilter = null : 2 cas possibles
-        // 1. Click toggle card → filtre était single, on retire
-        // 2. Toolbar multi-select → filtre est multi, on garde
-        const currentValue = currentStatusFilter?.value as string[] | undefined
-        if (currentValue && currentValue.length === 1) {
-          // Cas 1 : Toggle card, retirer filtre
-          return withoutStatus
+        // Appliquer si différent
+        if (!currentValue || currentValue.length !== 1 || currentValue[0] !== statusFilter) {
+          isUpdatingFromParent.current = true
+          return [...withoutStatus, { id: 'status', value: [statusFilter] }]
         }
-        // Cas 2 : Multi-select toolbar, garder filtre actuel
-        return prev
       }
+      // Cas 2: Parent clear (statusFilter = null) ET filtre actuel est single
+      else if (currentValue?.length === 1) {
+        isUpdatingFromParent.current = true
+        return withoutStatus
+      }
+
+      // Cas 3: Pas de changement nécessaire
+      return prev
     })
   }, [statusFilter])
 
-  // Surveiller changements filtre status (depuis toolbar) et remonter au parent
-  const prevColumnFilters = React.useRef(columnFilters)
+  // Remonter changements status au parent (skip si changement du parent)
   React.useEffect(() => {
     if (!onStatusFilterChange) return
 
-    const currentStatusValue = columnFilters.find((f) => f.id === 'status')?.value as string[] | undefined
-    const prevStatusValue = prevColumnFilters.current.find((f) => f.id === 'status')?.value as string[] | undefined
-
-    // Ne notifier que si le filtre status a changé (pas les autres filtres)
-    if (JSON.stringify(currentStatusValue) !== JSON.stringify(prevStatusValue)) {
-      // Vérifier que ce n'est pas un changement qu'on a nous-même provoqué
-      const isFromCardFilter = currentStatusValue?.length === 1 && currentStatusValue[0] === statusFilter
-      if (!isFromCardFilter) {
-        onStatusFilterChange(currentStatusValue || null)
-      }
+    // Skip si le changement vient du parent
+    if (isUpdatingFromParent.current) {
+      isUpdatingFromParent.current = false
+      return
     }
 
-    prevColumnFilters.current = columnFilters
-  }, [columnFilters, onStatusFilterChange, statusFilter])
+    const currentValue = columnFilters.find((f) => f.id === 'status')?.value as string[] | undefined
+    onStatusFilterChange(currentValue || null)
+  }, [columnFilters, onStatusFilterChange])
 
   const table = useReactTable({
     data,
@@ -125,26 +119,32 @@ export function DataTable<TData, TValue>({
       return data
     }
 
-    // Récupérer les Row objects de TanStack Table
+    // Pré-calculer filterFns (évite appel répété table.getColumn dans loop)
+    const filterFns = filtersWithoutStatus
+      .map((filter) => {
+        const column = table.getColumn(filter.id)
+        return {
+          id: filter.id,
+          value: filter.value,
+          fn: column?.columnDef.filterFn,
+        }
+      })
+      .filter((f) => typeof f.fn === 'function')
+
+    // Si aucun filtre valide, retourner data
+    if (filterFns.length === 0) {
+      return data
+    }
+
     const coreRows = table.getCoreRowModel().rows
 
-    // Appliquer tous les filtres SAUF status
+    // Filtrer rows avec filterFns pré-calculées
     const filteredRows = coreRows.filter((row) => {
-      return filtersWithoutStatus.every((filter) => {
-        const column = table.getColumn(filter.id)
-        if (!column?.columnDef.filterFn) {
-          return true
-        }
-        const filterFn = column.columnDef.filterFn
-        if (typeof filterFn === 'function') {
-          // filterFn attend un Row object (avec getValue())
-          return filterFn(row, filter.id, filter.value, (val) => val)
-        }
-        return true
-      })
+      return filterFns.every(({ id, value, fn }) =>
+        fn!(row, id, value, (val) => val)
+      )
     })
 
-    // Retourner les données originales (TData)
     return filteredRows.map((row) => row.original)
   }, [data, columnFilters, table])
 

@@ -2,14 +2,15 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
-import { format } from "date-fns"
-import { fr } from "date-fns/locale"
+import { formatCurrency } from "@/lib/utils"
 
 export type Quote = {
   id: string
   number: string
-  issueDate: Date
-  expiryDate: Date
+  issueDate: string // ISO string pour filtres
+  expiryDate: string // ISO string pour filtres
+  issueDateFormatted: string // dd/MM/yyyy pour affichage
+  expiryDateFormatted: string // dd/MM/yyyy pour affichage
   subtotal: string
   totalAmount: string
   status: "draft" | "to_send" | "pending" | "refused" | "signed"
@@ -34,14 +35,6 @@ const statusVariants: Record<
   pending: "default",
   refused: "destructive",
   signed: "default",
-}
-
-function formatCurrency(amount: string) {
-  const num = parseFloat(amount)
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  }).format(num)
 }
 
 export const columns: ColumnDef<Quote>[] = [
@@ -78,11 +71,7 @@ export const columns: ColumnDef<Quote>[] = [
   {
     accessorKey: "issueDate",
     header: "Date d'émission",
-    cell: ({ row }) => {
-      return format(new Date(row.getValue("issueDate")), "dd/MM/yyyy", {
-        locale: fr,
-      })
-    },
+    cell: ({ row }) => row.original.issueDateFormatted,
     filterFn: (row, id, value) => {
       if (!value || (!value.from && !value.to)) return true
       const rowDate = new Date(row.getValue(id))
@@ -102,11 +91,7 @@ export const columns: ColumnDef<Quote>[] = [
   {
     accessorKey: "expiryDate",
     header: "Date d'expiration",
-    cell: ({ row }) => {
-      return format(new Date(row.getValue("expiryDate")), "dd/MM/yyyy", {
-        locale: fr,
-      })
-    },
+    cell: ({ row }) => row.original.expiryDateFormatted,
     filterFn: (row, id, value) => {
       if (!value || (!value.from && !value.to)) return true
       const rowDate = new Date(row.getValue(id))

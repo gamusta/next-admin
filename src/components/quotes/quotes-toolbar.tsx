@@ -26,14 +26,12 @@ export function QuotesToolbar<TData>({ table }: QuotesToolbarProps<TData>) {
   const columnFilters = table.getState().columnFilters
   const [issueDateRange, setIssueDateRange] = React.useState<DateRange | undefined>()
   const [expiryDateRange, setExpiryDateRange] = React.useState<DateRange | undefined>()
-  const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([])
   const [minAmount, setMinAmount] = React.useState<string>("")
   const [maxAmount, setMaxAmount] = React.useState<string>("")
 
-  // Sync selectedStatuses depuis columnFilters (cards → toolbar)
-  React.useEffect(() => {
-    const statusFilter = columnFilters.find((f) => f.id === 'status')?.value as string[] | undefined
-    setSelectedStatuses(statusFilter || [])
+  // Dériver directement de columnFilters au lieu de dupliquer en état
+  const selectedStatuses = React.useMemo(() => {
+    return (columnFilters.find((f) => f.id === 'status')?.value as string[]) || []
   }, [columnFilters])
 
   return (
@@ -65,13 +63,11 @@ export function QuotesToolbar<TData>({ table }: QuotesToolbarProps<TData>) {
             options={statusOptions}
             selected={selectedStatuses}
             onChange={(newStatuses) => {
-              setSelectedStatuses(newStatuses)
               table
                 .getColumn("status")
                 ?.setFilterValue(newStatuses.length > 0 ? newStatuses : undefined)
             }}
             onClear={() => {
-              setSelectedStatuses([])
               table.getColumn("status")?.setFilterValue(undefined)
             }}
             placeholder="Tous les statuts"

@@ -10,8 +10,10 @@ type QuoteStatus = 'draft' | 'to_send' | 'pending' | 'refused' | 'signed';
 interface Quote {
   id: string;
   number: string;
-  issueDate: Date;
-  expiryDate: Date;
+  issueDate: string; // ISO string
+  expiryDate: string; // ISO string
+  issueDateFormatted: string; // dd/MM/yyyy
+  expiryDateFormatted: string; // dd/MM/yyyy
   subtotal: string | number;
   totalAmount: string | number;
   status: QuoteStatus;
