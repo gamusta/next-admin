@@ -1,5 +1,5 @@
-import {ThemeProvider} from "@/components/theme-provider";
-import {AppSidebar} from "@/components/app-sidebar";
+import {ThemeProvider} from "@/components/layout/theme-provider";
+import {AppSidebar} from "@/components/layout/app-sidebar";
 import {SidebarInset, SidebarProvider} from "@/components/ui/sidebar";
 
 export default function AdminLayout({
