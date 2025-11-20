@@ -23,30 +23,52 @@ interface QuotesContentProps {
   quotes: Quote[];
 }
 
+/**
+ * Composant wrapper qui coordonne la synchronisation entre :
+ * - QuoteStatusCards (affichage stats + sélection statut)
+ * - DataTable (tableau filtrable + toolbar)
+ *
+ * Flux de données :
+ * 1. Click card → selectedStatus → DataTable → columnFilters
+ * 2. Toolbar multi-select → columnFilters → handleStatusFilterChange → selectedStatus
+ * 3. Filtres non-status → DataTable → filteredData → Cards (recalcul stats)
+ */
 export function QuotesContent({ quotes }: QuotesContentProps) {
+  // État pour card sélectionnée (null si 0 ou multi-sélection)
   const [selectedStatus, setSelectedStatus] = useState<QuoteStatus | null>(null);
+
+  // Données filtrées SANS filtre status (pour calcul stats cards)
   const [filteredData, setFilteredData] = useState<Quote[]>(quotes);
 
+  /**
+   * Handler click card
+   * Toggle le statut : click même card = désélection
+   */
   const handleStatusClick = (status: QuoteStatus) => {
-    // Click card → reset à ce statut uniquement
     setSelectedStatus(selectedStatus === status ? null : status);
   };
 
+  /**
+   * Callback depuis DataTable : données filtrées sans status
+   * Utilisé par cards pour calculer stats tous statuts
+   */
   const handleFilteredDataChange = useCallback((data: Quote[]) => {
     setFilteredData(data);
   }, []);
 
+  /**
+   * Callback depuis DataTable : changements filtre status (toolbar)
+   * Sync selectedStatus pour surbrillance card :
+   * - 1 statut → surbrillance
+   * - 0 ou 2+ → pas surbrillance
+   */
   const handleStatusFilterChange = useCallback((statuses: string[] | null) => {
-    // Sync depuis toolbar :
-    // - Si 1 statut → surbrillance card
-    // - Si plusieurs ou 0 → pas surbrillance
     if (!statuses || statuses.length === 0) {
       setSelectedStatus(null);
     } else if (statuses.length === 1) {
       setSelectedStatus(statuses[0] as QuoteStatus);
     } else {
-      // Multi-sélection → pas de surbrillance
-      setSelectedStatus(null);
+      setSelectedStatus(null); // Multi-sélection
     }
   }, []);
 

@@ -47,9 +47,12 @@ export function DataTable<TData, TValue>({
   })
 
   // Appliquer filtre status depuis parent (cards)
-  const isApplyingCardFilter = React.useRef(false)
+  const prevStatusFilter = React.useRef(statusFilter)
   React.useEffect(() => {
-    isApplyingCardFilter.current = true
+    // Ne sync que si la valeur a vraiment changé
+    if (prevStatusFilter.current === statusFilter) return
+    prevStatusFilter.current = statusFilter
+
     setColumnFilters((prev) => {
       const withoutStatus = prev.filter((f) => f.id !== 'status')
       if (statusFilter) {
@@ -57,16 +60,27 @@ export function DataTable<TData, TValue>({
       }
       return withoutStatus
     })
-    setTimeout(() => { isApplyingCardFilter.current = false }, 0)
   }, [statusFilter])
 
-  // Surveiller changements filtre status (depuis toolbar)
+  // Surveiller changements filtre status (depuis toolbar) et remonter au parent
+  const prevColumnFilters = React.useRef(columnFilters)
   React.useEffect(() => {
-    if (isApplyingCardFilter.current || !onStatusFilterChange) return
+    if (!onStatusFilterChange) return
 
-    const statusFilterValue = columnFilters.find((f) => f.id === 'status')?.value as string[] | undefined
-    onStatusFilterChange(statusFilterValue || null)
-  }, [columnFilters, onStatusFilterChange])
+    const currentStatusValue = columnFilters.find((f) => f.id === 'status')?.value as string[] | undefined
+    const prevStatusValue = prevColumnFilters.current.find((f) => f.id === 'status')?.value as string[] | undefined
+
+    // Ne notifier que si le filtre status a changé (pas les autres filtres)
+    if (JSON.stringify(currentStatusValue) !== JSON.stringify(prevStatusValue)) {
+      // Vérifier que ce n'est pas un changement qu'on a nous-même provoqué
+      const isFromCardFilter = currentStatusValue?.length === 1 && currentStatusValue[0] === statusFilter
+      if (!isFromCardFilter) {
+        onStatusFilterChange(currentStatusValue || null)
+      }
+    }
+
+    prevColumnFilters.current = columnFilters
+  }, [columnFilters, onStatusFilterChange, statusFilter])
 
   const table = useReactTable({
     data,
@@ -85,16 +99,23 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
   })
 
-  // Calculer data filtrée SANS filtre status (pour cards)
+  /**
+   * Calculer données filtrées SANS le filtre status (pour cards)
+   * Les cards doivent afficher les stats de TOUS les statuts
+   * basées sur les autres filtres actifs (dates, montants, search)
+   */
   const dataWithoutStatusFilter = React.useMemo(() => {
     const filtersWithoutStatus = columnFilters.filter((f) => f.id !== 'status')
 
+    // Pas de filtres → retourner toutes les données
     if (filtersWithoutStatus.length === 0) {
       return data
     }
 
+    // Récupérer les Row objects de TanStack Table
     const coreRows = table.getCoreRowModel().rows
 
+    // Appliquer tous les filtres SAUF status
     const filteredRows = coreRows.filter((row) => {
       return filtersWithoutStatus.every((filter) => {
         const column = table.getColumn(filter.id)
@@ -103,12 +124,14 @@ export function DataTable<TData, TValue>({
         }
         const filterFn = column.columnDef.filterFn
         if (typeof filterFn === 'function') {
-          return filterFn(row, filter.id, filter.value, (val: any) => val)
+          // filterFn attend un Row object (avec getValue())
+          return filterFn(row, filter.id, filter.value, (val) => val)
         }
         return true
       })
     })
 
+    // Retourner les données originales (TData)
     return filteredRows.map((row) => row.original)
   }, [data, columnFilters, table])
 
