@@ -2,9 +2,8 @@
 
 import * as React from "react"
 import { Table } from "@tanstack/react-table"
-import { IconSearch, IconX, IconChevronDown } from "@tabler/icons-react"
+import { IconSearch } from "@tabler/icons-react"
 import { type DateRange } from "react-day-picker"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DatePickerRange } from "@/components/ui/date-picker-range"
@@ -30,6 +29,12 @@ export function QuotesToolbar<TData>({ table }: QuotesToolbarProps<TData>) {
   const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([])
   const [minAmount, setMinAmount] = React.useState<string>("")
   const [maxAmount, setMaxAmount] = React.useState<string>("")
+
+  // Sync selectedStatuses depuis columnFilters (cards → toolbar)
+  React.useEffect(() => {
+    const statusFilter = columnFilters.find((f) => f.id === 'status')?.value as string[] | undefined
+    setSelectedStatuses(statusFilter || [])
+  }, [columnFilters])
 
   return (
     <div className="flex flex-col gap-4 rounded-lg border bg-card p-4">

@@ -29,6 +29,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   onFilteredDataChange?: (data: TData[]) => void
   statusFilter?: string | null
+  onStatusFilterChange?: (statuses: string[] | null) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -36,6 +37,7 @@ export function DataTable<TData, TValue>({
   data,
   onFilteredDataChange,
   statusFilter,
+  onStatusFilterChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -44,16 +46,27 @@ export function DataTable<TData, TValue>({
     pageSize: 10,
   })
 
-  // Appliquer filtre status depuis parent
+  // Appliquer filtre status depuis parent (cards)
+  const isApplyingCardFilter = React.useRef(false)
   React.useEffect(() => {
+    isApplyingCardFilter.current = true
     setColumnFilters((prev) => {
       const withoutStatus = prev.filter((f) => f.id !== 'status')
       if (statusFilter) {
-        return [...withoutStatus, { id: 'status', value: statusFilter }]
+        return [...withoutStatus, { id: 'status', value: [statusFilter] }]
       }
       return withoutStatus
     })
+    setTimeout(() => { isApplyingCardFilter.current = false }, 0)
   }, [statusFilter])
+
+  // Surveiller changements filtre status (depuis toolbar)
+  React.useEffect(() => {
+    if (isApplyingCardFilter.current || !onStatusFilterChange) return
+
+    const statusFilterValue = columnFilters.find((f) => f.id === 'status')?.value as string[] | undefined
+    onStatusFilterChange(statusFilterValue || null)
+  }, [columnFilters, onStatusFilterChange])
 
   const table = useReactTable({
     data,
@@ -72,15 +85,39 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
   })
 
-  // Remonter data filtrée au parent
-  const filteredRows = table.getFilteredRowModel().rows
+  // Calculer data filtrée SANS filtre status (pour cards)
+  const dataWithoutStatusFilter = React.useMemo(() => {
+    const filtersWithoutStatus = columnFilters.filter((f) => f.id !== 'status')
+
+    if (filtersWithoutStatus.length === 0) {
+      return data
+    }
+
+    const coreRows = table.getCoreRowModel().rows
+
+    const filteredRows = coreRows.filter((row) => {
+      return filtersWithoutStatus.every((filter) => {
+        const column = table.getColumn(filter.id)
+        if (!column?.columnDef.filterFn) {
+          return true
+        }
+        const filterFn = column.columnDef.filterFn
+        if (typeof filterFn === 'function') {
+          return filterFn(row, filter.id, filter.value, (val: any) => val)
+        }
+        return true
+      })
+    })
+
+    return filteredRows.map((row) => row.original)
+  }, [data, columnFilters, table])
+
+  // Remonter au parent
   React.useEffect(() => {
     if (onFilteredDataChange) {
-      const filteredData = filteredRows.map((row) => row.original)
-      onFilteredDataChange(filteredData)
+      onFilteredDataChange(dataWithoutStatusFilter)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredRows.length, columnFilters, sorting, onFilteredDataChange])
+  }, [dataWithoutStatusFilter, onFilteredDataChange])
 
   return (
     <div className="flex flex-col gap-4">
