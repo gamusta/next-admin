@@ -27,11 +27,15 @@ import { DataTablePagination } from "./data-table-pagination"
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  onFilteredDataChange?: (data: TData[]) => void
+  statusFilter?: string | null
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  onFilteredDataChange,
+  statusFilter,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -39,6 +43,17 @@ export function DataTable<TData, TValue>({
     pageIndex: 0,
     pageSize: 10,
   })
+
+  // Appliquer filtre status depuis parent
+  React.useEffect(() => {
+    setColumnFilters((prev) => {
+      const withoutStatus = prev.filter((f) => f.id !== 'status')
+      if (statusFilter) {
+        return [...withoutStatus, { id: 'status', value: statusFilter }]
+      }
+      return withoutStatus
+    })
+  }, [statusFilter])
 
   const table = useReactTable({
     data,
@@ -56,6 +71,16 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
   })
+
+  // Remonter data filtrée au parent
+  const filteredRows = table.getFilteredRowModel().rows
+  React.useEffect(() => {
+    if (onFilteredDataChange) {
+      const filteredData = filteredRows.map((row) => row.original)
+      onFilteredDataChange(filteredData)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredRows.length, columnFilters, sorting, onFilteredDataChange])
 
   return (
     <div className="flex flex-col gap-4">
