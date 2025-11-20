@@ -54,11 +54,24 @@ export function DataTable<TData, TValue>({
     prevStatusFilter.current = statusFilter
 
     setColumnFilters((prev) => {
+      const currentStatusFilter = prev.find((f) => f.id === 'status')
       const withoutStatus = prev.filter((f) => f.id !== 'status')
+
       if (statusFilter) {
+        // Click card : appliquer filtre single statut
         return [...withoutStatus, { id: 'status', value: [statusFilter] }]
+      } else {
+        // statusFilter = null : 2 cas possibles
+        // 1. Click toggle card → filtre était single, on retire
+        // 2. Toolbar multi-select → filtre est multi, on garde
+        const currentValue = currentStatusFilter?.value as string[] | undefined
+        if (currentValue && currentValue.length === 1) {
+          // Cas 1 : Toggle card, retirer filtre
+          return withoutStatus
+        }
+        // Cas 2 : Multi-select toolbar, garder filtre actuel
+        return prev
       }
-      return withoutStatus
     })
   }, [statusFilter])
 
