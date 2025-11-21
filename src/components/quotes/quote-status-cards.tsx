@@ -26,32 +26,32 @@ const STATUS_CONFIG = {
   draft: {
     label: 'Brouillon',
     icon: IconFileText,
-    color: 'text-gray-500',
-    bgColor: 'bg-gray-100',
+    color: 'text-gray-500 dark:text-gray-400',
+    bgColor: 'bg-gray-100 dark:bg-gray-800',
   },
   to_send: {
     label: 'À envoyer',
     icon: IconSend,
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-100',
+    color: 'text-blue-500 dark:text-blue-400',
+    bgColor: 'bg-blue-100 dark:bg-blue-900/50',
   },
   pending: {
     label: 'En attente',
     icon: IconClock,
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-100',
+    color: 'text-orange-500 dark:text-orange-400',
+    bgColor: 'bg-orange-100 dark:bg-orange-900/50',
   },
   signed: {
     label: 'Signé',
     icon: IconCheck,
-    color: 'text-green-500',
-    bgColor: 'bg-green-100',
+    color: 'text-green-500 dark:text-green-400',
+    bgColor: 'bg-green-100 dark:bg-green-900/50',
   },
   refused: {
     label: 'Refusé',
     icon: IconX,
-    color: 'text-red-500',
-    bgColor: 'bg-red-100',
+    color: 'text-red-500 dark:text-red-400',
+    bgColor: 'bg-red-100 dark:bg-red-900/50',
   },
 } as const;
 
@@ -80,8 +80,8 @@ export function QuoteStatusCards({ quotes, selectedStatus, onStatusClick }: Quot
         return (
           <Card
             key={status}
-            className={`cursor-pointer py-1 ${
-              isSelected ? `${bgColor} border-2 ${color.replace('text-', 'border-')}` : 'hover:shadow-md'
+            className={`cursor-pointer py-1 border-2 ${
+              isSelected ? `${bgColor} ${color.replace('text-', 'border-')}` : 'border-transparent hover:shadow-md'
             }`}
             onClick={() => onStatusClick(status)}
           >

@@ -41,6 +41,7 @@ export const columns: ColumnDef<Quote>[] = [
   {
     accessorKey: "status",
     header: "Statut",
+    size: 130,
     cell: ({ row }) => (
       <Badge variant={statusVariants[row.original.status]}>
         {statusLabels[row.original.status]}
@@ -54,6 +55,7 @@ export const columns: ColumnDef<Quote>[] = [
   {
     accessorKey: "clientName",
     header: "Client",
+    size: 200,
     cell: ({ row }) => (
       <div className="font-medium">{row.getValue("clientName")}</div>
     ),
@@ -61,6 +63,7 @@ export const columns: ColumnDef<Quote>[] = [
   {
     accessorKey: "number",
     header: "Numéro",
+    size: 150,
     filterFn: (row, id, value) => {
       const searchValue = value.toLowerCase()
       const number = (row.getValue("number") as string).toLowerCase()
@@ -71,6 +74,7 @@ export const columns: ColumnDef<Quote>[] = [
   {
     accessorKey: "issueDate",
     header: "Date d'émission",
+    size: 140,
     cell: ({ row }) => row.original.issueDateFormatted,
     filterFn: (row, id, value) => {
       if (!value || (!value.from && !value.to)) return true
@@ -91,6 +95,7 @@ export const columns: ColumnDef<Quote>[] = [
   {
     accessorKey: "expiryDate",
     header: "Date d'expiration",
+    size: 140,
     cell: ({ row }) => row.original.expiryDateFormatted,
     filterFn: (row, id, value) => {
       if (!value || (!value.from && !value.to)) return true
@@ -111,6 +116,7 @@ export const columns: ColumnDef<Quote>[] = [
   {
     accessorKey: "subtotal",
     header: () => <div className="text-right">Total HT</div>,
+    size: 120,
     cell: ({ row }) => {
       return (
         <div className="text-right">{formatCurrency(row.getValue("subtotal"))}</div>
@@ -127,6 +133,7 @@ export const columns: ColumnDef<Quote>[] = [
   {
     accessorKey: "totalAmount",
     header: () => <div className="text-right">Total TTC</div>,
+    size: 120,
     cell: ({ row }) => {
       return (
         <div className="text-right font-medium">
