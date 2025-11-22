@@ -43,7 +43,7 @@ const data = {
     },
     {
       title: "Facture",
-      pathname: "/admin/invoices",
+      pathname: "/admin/outbound-invoices",
       icon: IconInvoice,
     },
     {

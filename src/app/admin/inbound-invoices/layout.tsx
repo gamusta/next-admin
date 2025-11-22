@@ -1,6 +1,6 @@
 import {SiteHeader} from "@/components/layout/site-header";
 
-export default function DashboardLayout({
+export default function InboundInvoicesLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
