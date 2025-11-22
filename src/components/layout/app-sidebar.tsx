@@ -2,13 +2,8 @@
 
 import * as React from "react"
 import {
-  IconDashboard,
-  IconFolder,
-  IconHelp,
-  IconInnerShadowTop, IconInvoice, IconNotes,
-  IconSearch,
-  IconSettings,
-  IconUsers,
+  IconDashboard, IconHelp, IconInnerShadowTop, IconInvoice,
+  IconNotes, IconPackage, IconSearch, IconSettings, IconUsers,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/layout/nav-main"
@@ -43,13 +38,13 @@ const data = {
     },
     {
       title: "Facture",
-      pathname: "/admin/outbound-invoices",
+      pathname: "/admin/inbound-invoices",
       icon: IconInvoice,
     },
     {
-      title: "Projects",
-      pathname: "#",
-      icon: IconFolder,
+      title: "Fournisseurs",
+      pathname: "/admin/suppliers",
+      icon: IconPackage,
     },
     {
       title: "Team",
