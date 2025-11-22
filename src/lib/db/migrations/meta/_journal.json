@@ -13,7 +13,14 @@
       "idx": 1,
       "version": "7",
       "when": 1763492868762,
-      "tag": "0002_quotes-invoices",
+      "tag": "0001_quotes-invoices",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1763844892141,
+      "tag": "0002_suppliers",
       "breakpoints": true
     }
   ]
