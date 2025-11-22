@@ -1,9 +1,15 @@
 import { db } from './drizzle';
-import { users, companies, companyUsers } from './schema';
-import { clients } from './schema/clients';
-import { quotes } from './schema/quotes';
-import { invoices } from './schema/invoices';
-import { lineItems } from './schema/line-items';
+import {
+  users,
+  companies,
+  companyUsers,
+  clients,
+  quotes,
+  invoices,
+  lineItems,
+  nafCodes,
+  legalForms
+} from '@/lib/db/schema';
 import { hashPassword } from '@/lib/auth/session';
 
 async function seed() {
@@ -27,6 +33,37 @@ async function seed() {
   await db.delete(companyUsers);
   await db.delete(users);
   await db.delete(companies);
+
+  // Sélection de codes NAF courants
+  const NAF_CODES_DATA = [
+    { code: '62.01Z', label: 'Programmation informatique' },
+    { code: '62.02A', label: 'Conseil en systèmes et logiciels informatiques' },
+    { code: '62.03Z', label: 'Gestion d\'installations informatiques' },
+    { code: '63.11Z', label: 'Traitement de données, hébergement et activités connexes' },
+    { code: '70.22Z', label: 'Conseil pour les affaires et autres conseils de gestion' },
+    { code: '43.21A', label: 'Travaux d\'installation électrique dans tous locaux' },
+    { code: '43.22A', label: 'Travaux d\'installation d\'eau et de gaz en tous locaux' },
+    { code: '46.90Z', label: 'Commerce de gros (commerce interentreprises) non spécialisé' },
+    { code: '47.11F', label: 'Hypermarchés' },
+    { code: '56.10A', label: 'Restauration traditionnelle' },
+  ];
+
+// Formes juridiques françaises courantes
+  const LEGAL_FORMS_DATA = [
+    { code: 'EI', label: 'Entreprise Individuelle' },
+    { code: 'EIRL', label: 'Entreprise Individuelle à Responsabilité Limitée' },
+    { code: 'EURL', label: 'Entreprise Unipersonnelle à Responsabilité Limitée' },
+    { code: 'SARL', label: 'Société à Responsabilité Limitée' },
+    { code: 'SAS', label: 'Société par Actions Simplifiée' },
+    { code: 'SASU', label: 'Société par Actions Simplifiée Unipersonnelle' },
+    { code: 'SA', label: 'Société Anonyme' },
+    { code: 'SNC', label: 'Société en Nom Collectif' },
+    { code: 'SCS', label: 'Société en Commandite Simple' },
+    { code: 'SCA', label: 'Société en Commandite par Actions' },
+    { code: 'SCOP', label: 'Société Coopérative et Participative' },
+    { code: 'Association', label: 'Association loi 1901' },
+    { code: 'Auto', label: 'Auto-entrepreneur / Micro-entreprise' },
+  ];
 
   const [company] = await db
     .insert(companies)
@@ -425,6 +462,12 @@ async function seed() {
       position: 0,
     },
   ]);
+
+  console.log('🌱 Seeding NAF codes...');
+  await db.insert(nafCodes).values(NAF_CODES_DATA).onConflictDoNothing();
+
+  console.log('🌱 Seeding legal forms...');
+  await db.insert(legalForms).values(LEGAL_FORMS_DATA).onConflictDoNothing();
 
   console.log(' ✅ Clients créés:', clientsData.length);
   console.log(' ✅ Devis créés:', quotesData.length);
