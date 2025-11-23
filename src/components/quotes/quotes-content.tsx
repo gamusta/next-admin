@@ -2,24 +2,10 @@
 
 import { useState, useCallback } from 'react';
 import { DataTable } from './data-table';
-import { columns } from './columns';
+import { columns, type Quote } from './columns';
 import { QuoteStatusCards } from './quote-status-cards';
 
 type QuoteStatus = 'draft' | 'to_send' | 'pending' | 'refused' | 'signed';
-
-interface Quote {
-  id: string;
-  number: string;
-  issueDate: string; // ISO string
-  expiryDate: string; // ISO string
-  issueDateFormatted: string; // dd/MM/yyyy
-  expiryDateFormatted: string; // dd/MM/yyyy
-  subtotal: string | number;
-  totalAmount: string | number;
-  status: QuoteStatus;
-  clientName: string;
-  clientId: string;
-}
 
 interface QuotesContentProps {
   quotes: Quote[];

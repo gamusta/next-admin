@@ -28,30 +28,35 @@ const STATUS_CONFIG = {
     icon: IconFileText,
     color: 'text-gray-500 dark:text-gray-400',
     bgColor: 'bg-gray-100 dark:bg-gray-800',
+    borderColor: 'border-gray-500 dark:border-gray-400',
   },
   to_send: {
     label: 'À envoyer',
     icon: IconSend,
     color: 'text-blue-500 dark:text-blue-400',
     bgColor: 'bg-blue-100 dark:bg-blue-900/50',
+    borderColor: 'border-blue-500 dark:border-blue-400',
   },
   pending: {
     label: 'En attente',
     icon: IconClock,
     color: 'text-orange-500 dark:text-orange-400',
     bgColor: 'bg-orange-100 dark:bg-orange-900/50',
+    borderColor: 'border-orange-500 dark:border-orange-400',
   },
   signed: {
     label: 'Signé',
     icon: IconCheck,
     color: 'text-green-500 dark:text-green-400',
     bgColor: 'bg-green-100 dark:bg-green-900/50',
+    borderColor: 'border-green-500 dark:border-green-400',
   },
   refused: {
     label: 'Refusé',
     icon: IconX,
     color: 'text-red-500 dark:text-red-400',
     bgColor: 'bg-red-100 dark:bg-red-900/50',
+    borderColor: 'border-red-500 dark:border-red-400',
   },
 } as const;
 
@@ -75,13 +80,13 @@ export function QuoteStatusCards({ quotes, selectedStatus, onStatusClick }: Quot
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-      {stats.map(({ status, label, icon: Icon, color, bgColor, count, subtotal }) => {
+      {stats.map(({ status, label, icon: Icon, color, bgColor, borderColor, count, subtotal }) => {
         const isSelected = selectedStatus === status;
         return (
           <Card
             key={status}
             className={`cursor-pointer py-1 border-2 ${
-              isSelected ? `${bgColor} ${color.replace('text-', 'border-')}` : 'border-transparent hover:shadow-md'
+              isSelected ? `${bgColor} ${borderColor}` : 'border-transparent hover:shadow-md'
             }`}
             onClick={() => onStatusClick(status)}
           >

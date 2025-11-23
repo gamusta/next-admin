@@ -123,13 +123,15 @@ export function DataTable<TData>({
     const filterFns = filtersWithoutStatus
       .map((filter) => {
         const column = table.getColumn(filter.id)
+        const fn = column?.columnDef.filterFn
+        if (typeof fn !== 'function') return null
         return {
           id: filter.id,
           value: filter.value,
-          fn: column?.columnDef.filterFn,
+          fn,
         }
       })
-      .filter((f) => typeof f.fn === 'function')
+      .filter((f): f is NonNullable<typeof f> => f !== null)
 
     // Si aucun filtre valide, retourner data
     if (filterFns.length === 0) {
@@ -141,7 +143,7 @@ export function DataTable<TData>({
     // Filtrer rows avec filterFns pré-calculées
     const filteredRows = coreRows.filter((row) => {
       return filterFns.every(({ id, value, fn }) =>
-        fn!(row, id, value, (val) => val)
+        fn(row, id, value, () => {})
       )
     })
 
