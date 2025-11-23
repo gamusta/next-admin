@@ -1,7 +1,9 @@
 ## 📝 Summary
+
 <!-- Décrivez brièvement l'objectif de cette PR en 1-2 phrases -->
 
 ## 🔄 Type of Change
+
 <!-- Cochez la case appropriée avec un [x] -->
 
 - [ ] 🐛 Bug fix (correction non-breaking)
@@ -14,6 +16,7 @@
 - [ ] ✅ Test update
 
 ## 📋 Changes
+
 <!-- Listez les changements principaux -->
 
 -
@@ -21,17 +24,16 @@
 -
 
 ## 🧪 Test Plan
+
 <!-- Comment avez-vous testé vos changements ? -->
 
 ### Testé manuellement
-
 - [ ] Créé/modifié des données
 - [ ] Testé sur différents navigateurs (Chrome, Firefox, Safari)
 - [ ] Testé responsive (mobile + desktop)
 - [ ] Testé les cas d'erreur
 
 ### Commandes exécutées
-
 - [ ] `npm run build` ✅ Pas d'erreurs
 - [ ] `npm run lint` ✅ Pas de warnings
 - [ ] `tsc --noEmit` ✅ Types OK
@@ -44,7 +46,8 @@
 3.
 
 ## 🛡️ Security Checklist (Multi-tenant)
-<!-- CRITIQUE : Vérifiez ces points pour toutes PR -->
+
+<!-- CRITIQUE : Vérifiez ces points pour toute PR -->
 
 - [ ] Toutes les requêtes DB filtrent par `companyId`
 - [ ] `getTenantContext()` appelé dans toutes les Server Actions
@@ -53,6 +56,7 @@
 - [ ] Vérification des permissions utilisateur (si applicable)
 
 ## 📸 Screenshots (si UI)
+
 <!-- Ajoutez des screenshots pour les changements visuels -->
 
 ### Avant
@@ -69,16 +73,17 @@
 - [ ] Types TypeScript documentés (JSDoc si nécessaire)
 
 ## 🔗 Related Issues
+
 <!-- Référencez les issues GitHub liées -->
 
 Fixes #
 Related to #
 
 ## ✅ Reviewer Checklist
+
 <!-- Pour le reviewer -->
 
 ### Code Quality
-
 - [ ] Code respecte les conventions (DEVELOPMENT.md)
 - [ ] Naming clair et cohérent
 - [ ] Pas de code dupliqué
@@ -86,20 +91,19 @@ Related to #
 - [ ] Imports organisés
 
 ### Architecture
-
 - [ ] Server Components utilisés par défaut
 - [ ] `'use client'` uniquement si nécessaire
 - [ ] Server Actions pour mutations
 - [ ] Structure de dossiers respectée
 
 ### Performance & UX
-
 - [ ] Pas de performance dégradée
 - [ ] Loading states présents
 - [ ] Error handling correct
 - [ ] Messages clairs pour l'utilisateur
 
 ## 💬 Notes additionnelles
+
 <!-- Informations supplémentaires pour les reviewers -->
 
 ---
