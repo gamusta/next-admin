@@ -79,7 +79,6 @@ export async function createSupplier(rawInput: unknown) {
         companyId,
         businessName: input.businessName,
         siret: input.siret || null,
-        hasSiret: input.hasSiret,
         iban: input.iban || null,
         vatNumber: input.vatNumber || null,
         tradeName: input.tradeName || null,
@@ -144,7 +143,6 @@ export async function updateSupplier(rawInput: unknown) {
       .set({
         businessName: input.businessName,
         siret: input.siret || null,
-        hasSiret: input.hasSiret,
         iban: input.iban || null,
         vatNumber: input.vatNumber || null,
         tradeName: input.tradeName || null,

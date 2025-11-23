@@ -14,14 +14,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Checkbox } from '@/components/ui/checkbox';
 import { IconPlus, IconTrash } from '@tabler/icons-react';
 import { toast } from 'sonner';
 import { createSupplier, updateSupplier, getSupplierById } from '@/actions/suppliers.actions';
 import {
   CreateSupplierSchema,
   type CreateSupplierInput,
-  type SupplierContact,
 } from '@/types/suppliers.types';
 import type { Supplier } from './columns';
 
@@ -39,14 +37,11 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
     register,
     handleSubmit,
     reset,
-    watch,
-    setValue,
     control,
     formState: { errors },
   } = useForm<CreateSupplierInput>({
     resolver: zodResolver(CreateSupplierSchema),
     defaultValues: {
-      hasSiret: true,
       country: 'France',
       contacts: [],
     },
@@ -57,8 +52,6 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
     name: 'contacts',
   });
 
-  const hasSiret = watch('hasSiret');
-
   // Charger données complètes lors de l'édition
   useEffect(() => {
     if (open && supplier) {
@@ -68,7 +61,6 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
           reset({
             businessName: fullSupplier.businessName,
             siret: fullSupplier.siret || '',
-            hasSiret: fullSupplier.hasSiret,
             iban: fullSupplier.iban || '',
             vatNumber: fullSupplier.vatNumber || '',
             tradeName: fullSupplier.tradeName || '',
@@ -80,7 +72,14 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
             city: fullSupplier.city || '',
             country: fullSupplier.country,
             notes: fullSupplier.notes || '',
-            contacts: fullSupplier.contacts || [],
+            contacts: fullSupplier.contacts?.map(c => ({
+              id: c.id,
+              firstName: c.firstName || '',
+              lastName: c.lastName,
+              email: c.email,
+              phone: c.phone || '',
+              position: c.position || '',
+            })) || [],
           });
         } catch (error) {
           toast.error('Erreur chargement fournisseur');
@@ -88,8 +87,19 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
       });
     } else if (open && !supplier) {
       reset({
-        hasSiret: true,
+        businessName: '',
+        siret: '',
+        iban: '',
+        vatNumber: '',
+        tradeName: '',
+        email: '',
+        phone: '',
+        address: '',
+        addressComplement: '',
+        postalCode: '',
+        city: '',
         country: 'France',
+        notes: '',
         contacts: [],
       });
       setActiveTab('info');
@@ -97,7 +107,6 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
   }, [open, supplier, reset]);
 
   const onSubmit = (data: CreateSupplierInput) => {
-    console.log('submit!!')
     startTransition(async () => {
       try {
         if (supplier) {
@@ -109,6 +118,7 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
         }
         onOpenChange(false);
       } catch (error) {
+        console.error('Erreur submit:', error);
         toast.error(error instanceof Error ? error.message : 'Erreur');
       }
     });
@@ -166,42 +176,23 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="hasSiret"
-                      checked={hasSiret}
-                      onCheckedChange={(checked) =>
-                        setValue('hasSiret', checked === true)
-                      }
-                    />
-                    <Label htmlFor="hasSiret" className="cursor-pointer">
-                      A un SIRET
-                    </Label>
-                  </div>
+                  <Label htmlFor="siret">SIRET</Label>
+                  <Input
+                    id="siret"
+                    {...register('siret')}
+                    placeholder="14 chiffres (optionnel)"
+                    maxLength={14}
+                  />
+                  {errors.siret && (
+                    <p className="text-sm text-destructive">{errors.siret.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="vatNumber">N° TVA</Label>
+                  <Input id="vatNumber" {...register('vatNumber')} placeholder="FR..." />
                 </div>
               </div>
-
-              {hasSiret && (
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="siret">SIRET</Label>
-                    <Input
-                      id="siret"
-                      {...register('siret')}
-                      placeholder="14 chiffres"
-                      maxLength={14}
-                    />
-                    {errors.siret && (
-                      <p className="text-sm text-destructive">{errors.siret.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="vatNumber">N° TVA</Label>
-                    <Input id="vatNumber" {...register('vatNumber')} placeholder="FR..." />
-                  </div>
-                </div>
-              )}
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
@@ -367,6 +358,19 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
               </div>
             </TabsContent>
           </Tabs>
+
+          {Object.keys(errors).length > 0 && (
+            <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+              <p className="font-medium">Erreurs de validation:</p>
+              <ul className="mt-2 space-y-1 text-xs">
+                {Object.entries(errors).map(([key, error]) => (
+                  <li key={key}>
+                    <strong>{key}:</strong> {error?.message?.toString() || 'Erreur'}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="flex justify-end gap-2 pt-4">
             <Button

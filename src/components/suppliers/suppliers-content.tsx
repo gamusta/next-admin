@@ -69,7 +69,6 @@ export function SuppliersContent({ suppliers }: SuppliersContentProps) {
   return (
     <>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Fournisseurs</h1>
         <Button onClick={handleNew}>
           <IconPlus className="mr-2 h-4 w-4" />
           Nouveau fournisseur

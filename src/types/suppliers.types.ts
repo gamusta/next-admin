@@ -11,14 +11,16 @@ export const SupplierContactSchema = z.object({
 
 export const CreateSupplierSchema = z.object({
   businessName: z.string().min(1, 'Raison sociale requise'),
-  siret: z.string().length(14, 'SIRET doit contenir 14 caractères').optional(),
-  hasSiret: z.boolean().default(true),
+  siret: z.string().length(14, 'SIRET doit contenir 14 caractères').optional().or(z.literal('')),
   iban: z.string().optional(),
   vatNumber: z.string().optional(),
   tradeName: z.string().optional(),
   nafCodeId: z.uuid().optional(),
   legalFormId: z.uuid().optional(),
-  email: z.email('Email invalide').optional().or(z.literal('')),
+  email: z.string().optional().refine(
+    (val) => !val || val === '' || z.email().safeParse(val).success,
+    { message: 'Email invalide' }
+  ),
   phone: z.string().optional(),
   address: z.string().optional(),
   addressComplement: z.string().optional(),
@@ -27,18 +29,7 @@ export const CreateSupplierSchema = z.object({
   country: z.string().default('France'),
   notes: z.string().optional(),
   contacts: z.array(SupplierContactSchema).default([]),
-}).refine(
-  (data) => {
-    if (data.hasSiret && !data.siret) {
-      return false;
-    }
-    return true;
-  },
-  {
-    message: 'SIRET requis si "A un SIRET" est coché',
-    path: ['siret'],
-  }
-);
+});
 
 export const UpdateSupplierSchema = CreateSupplierSchema.safeExtend({
   id: z.uuid(),
