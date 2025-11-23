@@ -23,28 +23,28 @@ interface InboundInvoiceStatusCardsProps {
 
 const STATUS_CONFIG = {
   imported: {
-    label: 'À vérifier',
+    label: 'Ã€ vÃ©rifier',
     icon: IconFileImport,
     color: 'text-orange-500 dark:text-orange-400',
     bgColor: 'bg-orange-100 dark:bg-orange-900/50',
     borderColor: 'border-orange-500 dark:border-orange-400',
   },
   accepted: {
-    label: 'À payer',
+    label: 'Ã€ payer',
     icon: IconCheck,
     color: 'text-blue-500 dark:text-blue-400',
     bgColor: 'bg-blue-100 dark:bg-blue-900/50',
     borderColor: 'border-blue-500 dark:border-blue-400',
   },
   paid: {
-    label: 'Payé',
+    label: 'PayÃ©',
     icon: IconCircleCheck,
     color: 'text-green-500 dark:text-green-400',
     bgColor: 'bg-green-100 dark:bg-green-900/50',
     borderColor: 'border-green-500 dark:border-green-400',
   },
   refused: {
-    label: 'Refusé',
+    label: 'RefusÃ©',
     icon: IconX,
     color: 'text-red-500 dark:text-red-400',
     bgColor: 'bg-red-100 dark:bg-red-900/50',
@@ -70,13 +70,13 @@ export function InboundInvoiceStatusCards({ invoices, selectedStatus, onStatusCl
     };
   });
 
-  // Regrouper Paid + Refused dans "Terminés"
+  // Regrouper Paid + Refused dans "TerminÃ©s"
   const displayStats = [
     stats.find(s => s.status === 'imported')!,
     stats.find(s => s.status === 'accepted')!,
     {
       status: 'terminated' as const,
-      label: 'Terminés',
+      label: 'TerminÃ©s',
       icon: IconCircleCheck,
       color: 'text-gray-500 dark:text-gray-400',
       bgColor: 'bg-gray-100 dark:bg-gray-800',

@@ -46,10 +46,10 @@ export function DataTable<TData>({
     pageSize: 10,
   })
 
-  // Track si changement provient du parent (évite boucle)
+  // Track si changement provient du parent (Ã©vite boucle)
   const isUpdatingFromParent = React.useRef(false)
 
-  // Sync parent statusFilter ’ columnFilters
+  // Sync parent statusFilter â†’ columnFilters
   React.useEffect(() => {
     setColumnFilters((prev) => {
       const currentStatus = prev.find((f) => f.id === 'status')
@@ -58,7 +58,7 @@ export function DataTable<TData>({
 
       // Cas 1: Parent demande filtre single
       if (statusFilter) {
-        // Appliquer si différent
+        // Appliquer si diffÃ©rent
         if (!currentValue || currentValue.length !== 1 || currentValue[0] !== statusFilter) {
           isUpdatingFromParent.current = true
           return [...withoutStatus, { id: 'status', value: [statusFilter] }]
@@ -70,7 +70,7 @@ export function DataTable<TData>({
         return withoutStatus
       }
 
-      // Cas 3: Pas de changement nécessaire
+      // Cas 3: Pas de changement nÃ©cessaire
       return prev
     })
   }, [statusFilter])
@@ -107,19 +107,19 @@ export function DataTable<TData>({
   })
 
   /**
-   * Calculer données filtrées SANS le filtre status (pour cards)
+   * Calculer donnÃ©es filtrÃ©es SANS le filtre status (pour cards)
    * Les cards doivent afficher les stats de TOUS les statuts
-   * basées sur les autres filtres actifs (dates, montants, search)
+   * basÃ©es sur les autres filtres actifs (dates, montants, search)
    */
   const dataWithoutStatusFilter = React.useMemo(() => {
     const filtersWithoutStatus = columnFilters.filter((f) => f.id !== 'status')
 
-    // Pas de filtres ’ retourner toutes les données
+    // Pas de filtres â†’ retourner toutes les donnÃ©es
     if (filtersWithoutStatus.length === 0) {
       return data
     }
 
-    // Pré-calculer filterFns (évite appel répété table.getColumn dans loop)
+    // PrÃ©-calculer filterFns (Ã©vite appel rÃ©pÃ©tÃ© table.getColumn dans loop)
     const filterFns = filtersWithoutStatus
       .map((filter) => {
         const column = table.getColumn(filter.id)
@@ -140,7 +140,7 @@ export function DataTable<TData>({
 
     const coreRows = table.getCoreRowModel().rows
 
-    // Filtrer rows avec filterFns pré-calculées
+    // Filtrer rows avec filterFns prÃ©-calculÃ©es
     const filteredRows = coreRows.filter((row) => {
       return filterFns.every(({ id, value, fn }) =>
         fn(row, id, value, () => {})
@@ -204,7 +204,7 @@ export function DataTable<TData>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Aucune facture trouvée
+                  Aucune facture trouvÃ©e
                 </TableCell>
               </TableRow>
             )}

@@ -11,12 +11,12 @@ export const inboundInvoicePayments = pgTable('inbound_invoice_payments', {
   amount: numeric('amount', { precision: 10, scale: 2 }).notNull(), // Montant du paiement
   paymentDate: timestamp('payment_date').notNull(), // Date du paiement
   paymentMethod: paymentMethodEnum('payment_method').notNull(),
-  reference: text('reference'), // R�f�rence du paiement (n� ch�que, n� virement, etc.)
+  reference: text('reference'), // Référence du paiement (n° chèque, n° virement, etc.)
 
   // Notes
   notes: text('notes'),
 
-  // Qui a enregistr� ce paiement
+  // Qui a enregistré ce paiement
   createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
 
   // Timestamps

@@ -20,10 +20,10 @@ export type InboundInvoice = {
 }
 
 const statusLabels: Record<InboundInvoice["status"], string> = {
-  imported: "À vérifier",
-  accepted: "À payer",
-  paid: "Payé",
-  refused: "Refusé",
+  imported: "Ã€ vÃ©rifier",
+  accepted: "Ã€ payer",
+  paid: "PayÃ©",
+  refused: "RefusÃ©",
 }
 
 const statusVariants: Record<
@@ -61,7 +61,7 @@ export const columns: ColumnDef<InboundInvoice>[] = [
   },
   {
     accessorKey: "number",
-    header: "Numéro facture",
+    header: "NumÃ©ro facture",
     size: 150,
     filterFn: (row, id, value) => {
       const searchValue = value.toLowerCase()
@@ -93,7 +93,7 @@ export const columns: ColumnDef<InboundInvoice>[] = [
   },
   {
     accessorKey: "dueDate",
-    header: "Date échéance",
+    header: "Date Ã©chÃ©ance",
     size: 140,
     cell: ({ row }) => row.original.dueDateFormatted,
     filterFn: (row, id, value) => {

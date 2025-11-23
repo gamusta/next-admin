@@ -13,32 +13,32 @@ interface InboundInvoicesContentProps {
 
 /**
  * Composant wrapper qui coordonne la synchronisation entre :
- * - InboundInvoiceStatusCards (affichage stats + sélection statut)
+ * - InboundInvoiceStatusCards (affichage stats + sÃ©lection statut)
  * - DataTable (tableau filtrable + toolbar)
  *
- * Flux de données :
- * 1. Click card ’ selectedStatus ’ DataTable ’ columnFilters
- * 2. Toolbar multi-select ’ columnFilters ’ handleStatusFilterChange ’ selectedStatus
- * 3. Filtres non-status ’ DataTable ’ filteredData ’ Cards (recalcul stats)
+ * Flux de donnÃ©es :
+ * 1. Click card â†’ selectedStatus â†’ DataTable â†’ columnFilters
+ * 2. Toolbar multi-select â†’ columnFilters â†’ handleStatusFilterChange â†’ selectedStatus
+ * 3. Filtres non-status â†’ DataTable â†’ filteredData â†’ Cards (recalcul stats)
  */
 export function InboundInvoicesContent({ invoices }: InboundInvoicesContentProps) {
-  // État pour card sélectionnée (null si 0 ou multi-sélection)
+  // Ã‰tat pour card sÃ©lectionnÃ©e (null si 0 ou multi-sÃ©lection)
   const [selectedStatus, setSelectedStatus] = useState<InboundInvoiceStatus | null>(null);
 
-  // Données filtrées SANS filtre status (pour calcul stats cards)
+  // DonnÃ©es filtrÃ©es SANS filtre status (pour calcul stats cards)
   const [filteredData, setFilteredData] = useState<InboundInvoice[]>(invoices);
 
   /**
    * Handler click card
-   * Toggle le statut : click même card = désélection
+   * Toggle le statut : click mÃªme card = dÃ©sÃ©lection
    */
   const handleStatusClick = (status: InboundInvoiceStatus) => {
     setSelectedStatus(selectedStatus === status ? null : status);
   };
 
   /**
-   * Callback depuis DataTable : données filtrées sans status
-   * Utilisé par cards pour calculer stats tous statuts
+   * Callback depuis DataTable : donnÃ©es filtrÃ©es sans status
+   * UtilisÃ© par cards pour calculer stats tous statuts
    */
   const handleFilteredDataChange = useCallback((data: InboundInvoice[]) => {
     setFilteredData(data);
@@ -47,8 +47,8 @@ export function InboundInvoicesContent({ invoices }: InboundInvoicesContentProps
   /**
    * Callback depuis DataTable : changements filtre status (toolbar)
    * Sync selectedStatus pour surbrillance card :
-   * - 1 statut ’ surbrillance
-   * - 0 ou 2+ ’ pas surbrillance
+   * - 1 statut â†’ surbrillance
+   * - 0 ou 2+ â†’ pas surbrillance
    */
   const handleStatusFilterChange = useCallback((statuses: string[] | null) => {
     if (!statuses || statuses.length === 0) {
@@ -56,7 +56,7 @@ export function InboundInvoicesContent({ invoices }: InboundInvoicesContentProps
     } else if (statuses.length === 1) {
       setSelectedStatus(statuses[0] as InboundInvoiceStatus);
     } else {
-      setSelectedStatus(null); // Multi-sélection
+      setSelectedStatus(null); // Multi-sÃ©lection
     }
   }, []);
 

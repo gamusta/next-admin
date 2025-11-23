@@ -31,7 +31,7 @@ export function InboundInvoicesToolbar<TData>({ table }: InboundInvoicesToolbarP
             <IconSearch className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="search"
-              placeholder="Numéro ou fournisseur..."
+              placeholder="NumÃ©ro ou fournisseur..."
               value={(table.getColumn("number")?.getFilterValue() as string) ?? ""}
               onChange={(event) =>
                 table.getColumn("number")?.setFilterValue(event.target.value)
@@ -56,14 +56,14 @@ export function InboundInvoicesToolbar<TData>({ table }: InboundInvoicesToolbarP
               setIssueDateRange(undefined)
               table.getColumn("issueDate")?.setFilterValue(undefined)
             }}
-            placeholder="Sélectionner période"
+            placeholder="SÃ©lectionner pÃ©riode"
           />
         </div>
 
-        {/* Filtre Date échéance */}
+        {/* Filtre Date Ã©chÃ©ance */}
         <div className="flex flex-col gap-2">
           <Label className="text-sm font-medium">
-            Date d&apos;échéance
+            Date d&apos;Ã©chÃ©ance
           </Label>
           <DatePickerRange
             value={dueDateRange}
@@ -75,7 +75,7 @@ export function InboundInvoicesToolbar<TData>({ table }: InboundInvoicesToolbarP
               setDueDateRange(undefined)
               table.getColumn("dueDate")?.setFilterValue(undefined)
             }}
-            placeholder="Sélectionner période"
+            placeholder="SÃ©lectionner pÃ©riode"
           />
         </div>
 
