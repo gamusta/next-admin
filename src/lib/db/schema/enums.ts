@@ -27,3 +27,12 @@ export const inboundInvoiceStatusEnum = pgEnum('inbound_invoice_status', [
   'paid',      // Payé
   'refused',   // Refusé
 ]);
+
+export const paymentMethodEnum = pgEnum('payment_method', [
+  'card',         // Carte Bancaire
+  'transfer',     // Virement
+  'debit',        // Prélèvement
+  'credit_note',  // Avoir
+  'check',        // Chèque
+  'cash',         // Espèce
+]);

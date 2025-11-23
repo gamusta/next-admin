@@ -29,11 +29,7 @@ export const inboundInvoices = pgTable('inbound_invoices', {
   paidAt: timestamp('paid_at'),
   refusedAt: timestamp('refused_at'),
 
-  // Paiement
-  paymentMethod: text('payment_method'), // virement, chèque, carte
-  paymentReference: text('payment_reference'),
-
-  // Notes
+  // Notes (notes générales sur la facture)
   notes: text('notes'),
 
   // Timestamps
