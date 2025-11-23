@@ -26,9 +26,9 @@ export const CreateSupplierSchema = z.object({
   addressComplement: z.string().optional(),
   postalCode: z.string().optional(),
   city: z.string().optional(),
-  country: z.string(),
+  country: z.string().default('France'),
   notes: z.string().optional(),
-  contacts: z.array(SupplierContactSchema),
+  contacts: z.array(SupplierContactSchema).default([]),
 });
 
 export const UpdateSupplierSchema = CreateSupplierSchema.safeExtend({

@@ -37,7 +37,7 @@ const statusVariants: Record<
   signed: "default",
 }
 
-export const columns: ColumnDef<Quote, any>[] = [
+export const columns: ColumnDef<Quote>[] = [
   {
     accessorKey: "status",
     header: "Statut",
