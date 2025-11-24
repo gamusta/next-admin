@@ -3,7 +3,7 @@
 import { db } from '@/lib/db/drizzle';
 import { inboundInvoices, suppliers } from '@/lib/db/schema';
 import { getTenantContext } from '@/lib/tenant';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -26,7 +26,7 @@ export async function getInboundInvoices() {
     .from(inboundInvoices)
     .innerJoin(suppliers, eq(inboundInvoices.supplierId, suppliers.id))
     .where(eq(inboundInvoices.companyId, companyId))
-    .orderBy(inboundInvoices.createdAt);
+    .orderBy(desc(inboundInvoices.issueDate));
 
   // Formater dates server-side pour performance (1x par invoice vs Nx par render)
   return result.map((invoice) => ({

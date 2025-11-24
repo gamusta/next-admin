@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, numeric, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, numeric, index, unique } from 'drizzle-orm/pg-core';
 import { companies } from './companies';
 import { suppliers } from './suppliers';
 import { inboundInvoiceStatusEnum } from './enums';
@@ -39,7 +39,7 @@ export const inboundInvoices = pgTable('inbound_invoices', {
   companyIdx: index('inbound_invoices_company_idx').on(table.companyId),
   supplierIdx: index('inbound_invoices_supplier_idx').on(table.supplierId),
   statusIdx: index('inbound_invoices_status_idx').on(table.status),
-  numberIdx: index('inbound_invoices_number_idx').on(table.companyId, table.number),
   dueDateIdx: index('inbound_invoices_due_date_idx').on(table.dueDate),
   issueDateIdx: index('inbound_invoices_issue_date_idx').on(table.issueDate),
+  companyNumberUnique: unique('inbound_invoices_company_number_unique').on(table.companyId, table.number),
 }));

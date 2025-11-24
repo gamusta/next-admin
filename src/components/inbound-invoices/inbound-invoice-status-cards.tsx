@@ -1,12 +1,7 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  IconFileImport,
-  IconCheck,
-  IconCircleCheck,
-  IconX
-} from '@tabler/icons-react';
+import { IconFileImport, IconCheck, IconCircleCheck } from '@tabler/icons-react';
 
 type InboundInvoiceStatus = 'imported' | 'accepted' | 'paid' | 'refused';
 
@@ -17,86 +12,60 @@ interface InboundInvoice {
 
 interface InboundInvoiceStatusCardsProps {
   invoices: InboundInvoice[];
-  selectedStatus: InboundInvoiceStatus | null;
-  onStatusClick: (status: InboundInvoiceStatus) => void;
+  onCardClick: (statuses: InboundInvoiceStatus[]) => void;
+  selectedStatuses: InboundInvoiceStatus[] | null;
 }
 
-const STATUS_CONFIG = {
-  imported: {
+const CARDS_CONFIG = [
+  {
+    id: 'imported',
     label: 'À vérifier',
     icon: IconFileImport,
     color: 'text-orange-500 dark:text-orange-400',
     bgColor: 'bg-orange-100 dark:bg-orange-900/50',
-    borderColor: 'border-orange-500 dark:border-orange-400',
+    borderColor: 'border-orange-500',
+    statuses: ['imported'] as InboundInvoiceStatus[],
   },
-  accepted: {
+  {
+    id: 'accepted',
     label: 'À payer',
     icon: IconCheck,
     color: 'text-blue-500 dark:text-blue-400',
     bgColor: 'bg-blue-100 dark:bg-blue-900/50',
-    borderColor: 'border-blue-500 dark:border-blue-400',
+    borderColor: 'border-blue-500',
+    statuses: ['accepted'] as InboundInvoiceStatus[],
   },
-  paid: {
-    label: 'Payé',
+  {
+    id: 'terminated',
+    label: 'Terminés',
     icon: IconCircleCheck,
-    color: 'text-green-500 dark:text-green-400',
-    bgColor: 'bg-green-100 dark:bg-green-900/50',
-    borderColor: 'border-green-500 dark:border-green-400',
+    color: 'text-gray-500 dark:text-gray-400',
+    bgColor: 'bg-gray-100 dark:bg-gray-800',
+    borderColor: 'border-gray-500',
+    statuses: ['paid', 'refused'] as InboundInvoiceStatus[],
   },
-  refused: {
-    label: 'Refusé',
-    icon: IconX,
-    color: 'text-red-500 dark:text-red-400',
-    bgColor: 'bg-red-100 dark:bg-red-900/50',
-    borderColor: 'border-red-500 dark:border-red-400',
-  },
-} as const;
+] as const;
 
-export function InboundInvoiceStatusCards({ invoices, selectedStatus, onStatusClick }: InboundInvoiceStatusCardsProps) {
-  // Calculer stats par statut
-  const stats = (Object.keys(STATUS_CONFIG) as InboundInvoiceStatus[]).map((status) => {
-    const filtered = invoices.filter((inv) => inv.status === status);
-    const count = filtered.length;
-    const totalAmount = filtered.reduce((acc, inv) => {
-      const amount = typeof inv.totalAmount === 'string' ? parseFloat(inv.totalAmount) : inv.totalAmount;
-      return acc + (isNaN(amount) ? 0 : amount);
-    }, 0);
-
-    return {
-      status,
-      count,
-      totalAmount,
-      ...STATUS_CONFIG[status],
-    };
-  });
-
-  // Regrouper Paid + Refused dans "Terminés"
-  const displayStats = [
-    stats.find(s => s.status === 'imported')!,
-    stats.find(s => s.status === 'accepted')!,
-    {
-      status: 'terminated' as const,
-      label: 'Terminés',
-      icon: IconCircleCheck,
-      color: 'text-gray-500 dark:text-gray-400',
-      bgColor: 'bg-gray-100 dark:bg-gray-800',
-      borderColor: 'border-gray-500 dark:border-gray-400',
-      count: stats.filter(s => s.status === 'paid' || s.status === 'refused').reduce((acc, s) => acc + s.count, 0),
-      totalAmount: stats.filter(s => s.status === 'paid' || s.status === 'refused').reduce((acc, s) => acc + s.totalAmount, 0),
-    },
-  ];
-
+export function InboundInvoiceStatusCards({ invoices, onCardClick, selectedStatuses }: InboundInvoiceStatusCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      {displayStats.map(({ status, label, icon: Icon, color, bgColor, borderColor, count, totalAmount }) => {
-        const isSelected = selectedStatus === status;
+      {CARDS_CONFIG.map(({ id, label, icon: Icon, color, bgColor, borderColor, statuses }) => {
+        const filtered = invoices.filter((inv) => statuses.includes(inv.status));
+        const count = filtered.length;
+        const totalAmount = filtered.reduce((acc, inv) => {
+          const amount = typeof inv.totalAmount === 'string' ? parseFloat(inv.totalAmount) : inv.totalAmount;
+          return acc + (isNaN(amount) ? 0 : amount);
+        }, 0);
+
+        const isSelected = selectedStatuses && JSON.stringify(selectedStatuses) === JSON.stringify(statuses);
+
         return (
           <Card
-            key={status}
+            key={id}
             className={'cursor-pointer py-1 border-2 ' + (
               isSelected ? bgColor + ' ' + borderColor : 'border-transparent hover:shadow-md'
             )}
-            onClick={() => onStatusClick(status as InboundInvoiceStatus)}
+            onClick={() => onCardClick(statuses)}
           >
             <CardContent className="p-3">
               <div className="flex items-start justify-between gap-2 mb-1.5">
