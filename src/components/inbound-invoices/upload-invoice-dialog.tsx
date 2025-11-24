@@ -101,13 +101,16 @@ export function UploadInvoiceDialog({ open, onOpenChange }: UploadInvoiceDialogP
 
         if (result.success && result.data) {
           toast.success('Facture analysée avec succès');
-          // Rediriger vers le formulaire avec les données extraites
-          const queryParams = new URLSearchParams({
-            ocrData: JSON.stringify(result.data),
+
+          // Stocker les données dans sessionStorage au lieu de l'URL
+          sessionStorage.setItem('invoiceUploadData', JSON.stringify({
+            ocrData: result.data,
             fileName: file.name,
             fileData: base64,
-          });
-          router.push(`/admin/inbound-invoices/new?${queryParams.toString()}`);
+          }));
+
+          // Rediriger vers le formulaire sans params
+          router.push('/admin/inbound-invoices/new');
           onOpenChange(false);
         } else {
           toast.error(result.error || 'Erreur lors de l\'analyse de la facture');

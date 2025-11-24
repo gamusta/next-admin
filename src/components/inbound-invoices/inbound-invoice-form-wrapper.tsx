@@ -1,6 +1,6 @@
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { InboundInvoiceForm } from './inbound-invoice-form';
 
@@ -29,35 +29,29 @@ interface OCRData {
 }
 
 export function InboundInvoiceFormWrapper({ suppliers }: InboundInvoiceFormWrapperProps) {
-  const searchParams = useSearchParams();
   const router = useRouter();
   const [ocrData, setOcrData] = useState<OCRData | null>(null);
   const [fileData, setFileData] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
 
   useEffect(() => {
-    // Récupérer les données OCR depuis les query params
-    const ocrDataParam = searchParams.get('ocrData');
-    const fileDataParam = searchParams.get('fileData');
-    const fileNameParam = searchParams.get('fileName');
+    // Récupérer les données depuis sessionStorage
+    const storedData = sessionStorage.getItem('invoiceUploadData');
 
-    if (ocrDataParam) {
+    if (storedData) {
       try {
-        const parsed = JSON.parse(ocrDataParam);
-        setOcrData(parsed);
+        const parsed = JSON.parse(storedData);
+        setOcrData(parsed.ocrData);
+        setFileData(parsed.fileData);
+        setFileName(parsed.fileName);
+
+        // Nettoyer le sessionStorage après utilisation
+        sessionStorage.removeItem('invoiceUploadData');
       } catch (error) {
-        console.error('Error parsing OCR data:', error);
+        console.error('Error parsing stored data:', error);
       }
     }
-
-    if (fileDataParam) {
-      setFileData(fileDataParam);
-    }
-
-    if (fileNameParam) {
-      setFileName(fileNameParam);
-    }
-  }, [searchParams]);
+  }, []);
 
   return (
     <div className="flex h-[calc(100vh-4rem)] gap-4 px-4 lg:px-6">
