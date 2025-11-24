@@ -36,10 +36,18 @@ export const inboundInvoices = pgTable('inbound_invoices', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
-  companyIdx: index('inbound_invoices_company_idx').on(table.companyId),
-  supplierIdx: index('inbound_invoices_supplier_idx').on(table.supplierId),
-  statusIdx: index('inbound_invoices_status_idx').on(table.status),
-  dueDateIdx: index('inbound_invoices_due_date_idx').on(table.dueDate),
-  issueDateIdx: index('inbound_invoices_issue_date_idx').on(table.issueDate),
-  companyNumberUnique: unique('inbound_invoices_company_number_unique').on(table.companyId, table.number),
+  // Contrainte unique : un fournisseur ne peut pas avoir 2 factures avec le même numéro
+  uniqueInvoiceNumber: unique('inbound_inv_number_uniq')
+    .on(table.companyId, table.supplierId, table.number),
+
+  // Index composites pour requêtes fréquentes (toujours filtré par companyId)
+  companyStatusIdx: index('inbound_inv_company_status_idx')
+    .on(table.companyId, table.status),
+  companyDueDateIdx: index('inbound_inv_company_due_date_idx')
+    .on(table.companyId, table.dueDate),
+  companyIssueDateIdx: index('inbound_inv_company_issue_date_idx')
+    .on(table.companyId, table.issueDate),
+
+  // Index solo pour requêtes par fournisseur
+  supplierIdx: index('inbound_inv_supplier_idx').on(table.supplierId),
 }));
