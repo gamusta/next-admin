@@ -3,6 +3,7 @@
 import { db } from '@/lib/db/drizzle';
 import { inboundInvoices, suppliers, inboundInvoiceComments } from '@/lib/db/schema';
 import { getTenantContext } from '@/lib/tenant';
+import { uploadInvoiceFile } from '@/lib/storage';
 import { eq, desc, and } from 'drizzle-orm';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -28,16 +29,18 @@ export async function getInboundInvoices() {
       totalAmount: inboundInvoices.totalAmount,
       status: inboundInvoices.status,
       supplierName: suppliers.businessName,
-      supplierId: suppliers.id,
+      supplierNameExtracted: inboundInvoices.supplierNameExtracted,
+      supplierId: inboundInvoices.supplierId,
     })
     .from(inboundInvoices)
-    .innerJoin(suppliers, eq(inboundInvoices.supplierId, suppliers.id))
+    .leftJoin(suppliers, eq(inboundInvoices.supplierId, suppliers.id))
     .where(eq(inboundInvoices.companyId, companyId))
     .orderBy(desc(inboundInvoices.issueDate));
 
   // Formater dates server-side pour performance (1x par invoice vs Nx par render)
   return result.map((invoice) => ({
     ...invoice,
+    supplierName: invoice.supplierName || invoice.supplierNameExtracted || 'À définir',
     issueDateFormatted: format(invoice.issueDate, 'dd/MM/yyyy', { locale: fr }),
     dueDateFormatted: format(invoice.dueDate, 'dd/MM/yyyy', { locale: fr }),
     // Garder dates ISO pour filtres
@@ -46,11 +49,54 @@ export async function getInboundInvoices() {
   }));
 }
 
+// Récupérer une facture par ID
+export async function getInboundInvoiceById(invoiceId: string) {
+  const { companyId } = await getTenantContext();
+
+  const [invoice] = await db
+    .select({
+      id: inboundInvoices.id,
+      number: inboundInvoices.number,
+      issueDate: inboundInvoices.issueDate,
+      dueDate: inboundInvoices.dueDate,
+      subtotal: inboundInvoices.subtotal,
+      taxAmount: inboundInvoices.taxAmount,
+      totalAmount: inboundInvoices.totalAmount,
+      status: inboundInvoices.status,
+      notes: inboundInvoices.notes,
+      fileUrl: inboundInvoices.fileUrl,
+      ocrData: inboundInvoices.ocrData,
+      supplierId: inboundInvoices.supplierId,
+      supplierName: suppliers.businessName,
+    })
+    .from(inboundInvoices)
+    .leftJoin(suppliers, eq(inboundInvoices.supplierId, suppliers.id))
+    .where(
+      and(
+        eq(inboundInvoices.id, invoiceId),
+        eq(inboundInvoices.companyId, companyId)
+      )
+    );
+
+  if (!invoice) {
+    throw new Error('Facture introuvable');
+  }
+
+  return invoice;
+}
+
 // Schema Zod pour les données OCR extraites
 const ocrDataSchema = z.object({
   supplierName: z.string(),
   supplierSiret: z.string().optional(),
   supplierAddress: z.string().optional(),
+  supplierCity: z.string().optional(),
+  supplierPostalCode: z.string().optional(),
+  supplierPhone: z.string().optional(),
+  supplierEmail: z.string().optional(),
+  supplierBankName: z.string().optional(),
+  supplierBic: z.string().optional(),
+  supplierIban: z.string().optional(),
   invoiceNumber: z.string(),
   issueDate: z.string(), // Format ISO ou DD/MM/YYYY
   dueDate: z.string().optional(),
@@ -101,8 +147,8 @@ export async function analyzeInvoiceWithOCR(input: {
     }
 
     const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 4096,
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
       messages: [
         {
           role: 'user',
@@ -123,6 +169,13 @@ export async function analyzeInvoiceWithOCR(input: {
   "supplierName": "Nom du fournisseur",
   "supplierSiret": "Numéro SIRET si présent",
   "supplierAddress": "Adresse complète du fournisseur",
+  "supplierCity": "Ville du fournisseur",
+  "supplierPostalCode": "Code postal du fournisseur",
+  "supplierPhone": "Téléphone du fournisseur",
+  "supplierEmail": "Email du fournisseur",
+  "supplierBankName": "Nom banque du fournisseur",
+  "supplierBic": "BIC du fournisseur",
+  "supplierIban": "IBAN du fournisseur",
   "invoiceNumber": "Numéro de facture",
   "issueDate": "Date de facturation au format YYYY-MM-DD",
   "dueDate": "Date d'échéance au format YYYY-MM-DD (si présente)",
@@ -180,17 +233,23 @@ IMPORTANT:
 }
 
 // Créer une nouvelle facture d'achat (imported)
-export async function createInboundInvoice(input: CreateInboundInvoiceInput) {
-  const { companyId, userId } = await getTenantContext();
+export async function createInboundInvoice(
+  input: CreateInboundInvoiceInput,
+  fileUrl?: string,
+  ocrData?: OCRData
+) {
+  const { companyId } = await getTenantContext();
 
-  // Vérifier que le fournisseur appartient à la company
-  const [supplier] = await db
-    .select()
-    .from(suppliers)
-    .where(and(eq(suppliers.id, input.supplierId), eq(suppliers.companyId, companyId)));
+  // Si supplierId fourni, vérifier qu'il appartient à la company
+  if (input.supplierId) {
+    const [supplier] = await db
+      .select()
+      .from(suppliers)
+      .where(and(eq(suppliers.id, input.supplierId), eq(suppliers.companyId, companyId)));
 
-  if (!supplier) {
-    throw new Error('Fournisseur introuvable');
+    if (!supplier) {
+      throw new Error('Fournisseur introuvable');
+    }
   }
 
   // Créer la facture avec status 'imported'
@@ -198,7 +257,7 @@ export async function createInboundInvoice(input: CreateInboundInvoiceInput) {
     .insert(inboundInvoices)
     .values({
       companyId,
-      supplierId: input.supplierId,
+      supplierId: input.supplierId || null,
       number: input.number,
       issueDate: input.issueDate,
       dueDate: input.dueDate,
@@ -207,6 +266,9 @@ export async function createInboundInvoice(input: CreateInboundInvoiceInput) {
       totalAmount: input.totalAmount.toString(),
       status: 'imported',
       notes: input.notes || null,
+      fileUrl: fileUrl || null,
+      ocrData: ocrData || null,
+      supplierNameExtracted: ocrData?.supplierName || null,
       importedAt: new Date(),
     })
     .returning();
@@ -275,9 +337,8 @@ export async function refuseInboundInvoice(invoiceId: string, reason?: string) {
     // Ajouter un commentaire avec la raison
     if (reason) {
       await tx.insert(inboundInvoiceComments).values({
-        companyId,
         inboundInvoiceId: invoiceId,
-        userId,
+        createdBy : userId,
         content: `Facture refusée: ${reason}`,
       });
     }
@@ -309,13 +370,92 @@ export async function addInboundInvoiceComment(input: CreateCommentInput) {
   const [comment] = await db
     .insert(inboundInvoiceComments)
     .values({
-      companyId,
       inboundInvoiceId: input.inboundInvoiceId,
-      userId,
+      createdBy: userId,
       content: input.content,
     })
     .returning();
 
   revalidatePath('/admin/inbound-invoices');
   return comment;
+}
+
+/**
+ * Flow complet upload : OCR + Upload S3 + Create invoice
+ * Appelé depuis upload dialog, créé facture directement SANS fournisseur
+ */
+export async function uploadAndCreateInvoice(input: {
+  fileBase64: string;
+  fileName: string;
+  fileType: string;
+}): Promise<{
+  success: boolean;
+  invoiceId?: string;
+  error?: string;
+}> {
+  try {
+    // 1. Analyse OCR
+    const ocrResult = await analyzeInvoiceWithOCR(input);
+    if (!ocrResult.success || !ocrResult.data) {
+      return {
+        success: false,
+        error: ocrResult.error || 'Erreur OCR',
+      };
+    }
+
+    // 2. Upload fichier Supabase Storage
+    const uploadResult = await uploadInvoiceFile(
+      input.fileBase64,
+      input.fileName,
+      input.fileType
+    );
+
+    if (!uploadResult.success || !uploadResult.url) {
+      return {
+        success: false,
+        error: uploadResult.error || 'Erreur upload fichier',
+      };
+    }
+
+    // 3. Créer facture en base SANS supplier (sera défini dans edit)
+    const ocrData = ocrResult.data;
+
+    const invoiceData: CreateInboundInvoiceInput = {
+      supplierId: '', // Pas de supplier pour l'instant
+      number: ocrData.invoiceNumber,
+      issueDate: new Date(ocrData.issueDate),
+      dueDate: ocrData.dueDate
+        ? new Date(ocrData.dueDate)
+        : (() => {
+            const dueDate = new Date(ocrData.issueDate);
+            dueDate.setDate(dueDate.getDate() + 30);
+            return dueDate;
+          })(),
+      subtotal: ocrData.subtotal,
+      taxAmount: ocrData.taxAmount,
+      totalAmount: ocrData.totalAmount,
+      notes: ocrData.supplierAddress
+        ? `Adresse: ${ocrData.supplierAddress}`
+        : undefined,
+    };
+
+    const invoice = await createInboundInvoice(
+      invoiceData,
+      uploadResult.url,
+      ocrData
+    );
+
+    revalidatePath('/admin/inbound-invoices');
+
+    return {
+      success: true,
+      invoiceId: invoice.id,
+    };
+  } catch (error) {
+    console.error('Upload and create error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erreur création facture',
+    };
+  }
 }

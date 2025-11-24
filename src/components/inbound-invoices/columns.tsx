@@ -2,7 +2,10 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
+import { IconEdit } from "@tabler/icons-react"
+import Link from "next/link"
 
 export type InboundInvoice = {
   id: string
@@ -129,6 +132,26 @@ export const columns: ColumnDef<InboundInvoice>[] = [
       if (min !== undefined && amount < min) return false
       if (max !== undefined && amount > max) return false
       return true
+    },
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    size: 100,
+    cell: ({ row }) => {
+      const invoice = row.original
+
+      // Afficher bouton éditer seulement pour status 'imported'
+      if (invoice.status !== "imported") return null
+
+      return (
+        <Link href={`/admin/inbound-invoices/${invoice.id}/edit`}>
+          <Button variant="ghost" size="sm">
+            <IconEdit className="mr-2 size-4" />
+            Éditer
+          </Button>
+        </Link>
+      )
     },
   },
 ]

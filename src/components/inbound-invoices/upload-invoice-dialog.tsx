@@ -10,9 +10,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { IconUpload, IconFileInvoice, IconLoader2 } from '@tabler/icons-react';
-import { analyzeInvoiceWithOCR } from '@/actions/inbound-invoices.actions';
+import { uploadAndCreateInvoice } from '@/actions/inbound-invoices.actions';
 import { toast } from 'sonner';
 
 interface UploadInvoiceDialogProps {
@@ -92,28 +91,22 @@ export function UploadInvoiceDialog({ open, onOpenChange }: UploadInvoiceDialogP
       reader.onload = async () => {
         const base64 = reader.result as string;
 
-        // Appeler l'action serveur pour analyser la facture avec OCR
-        const result = await analyzeInvoiceWithOCR({
+        // Appeler action serveur : OCR + Upload + Create invoice
+        const result = await uploadAndCreateInvoice({
           fileBase64: base64,
           fileName: file.name,
           fileType: file.type,
         });
 
-        if (result.success && result.data) {
-          toast.success('Facture analysée avec succès');
+        if (result.success && result.invoiceId) {
+          toast.success('Facture importée avec succès');
 
-          // Stocker les données dans sessionStorage au lieu de l'URL
-          sessionStorage.setItem('invoiceUploadData', JSON.stringify({
-            ocrData: result.data,
-            fileName: file.name,
-            fileData: base64,
-          }));
-
-          // Rediriger vers le formulaire sans params
-          router.push('/admin/inbound-invoices/new');
+          // Rediriger vers listing
+          router.push('/admin/inbound-invoices');
+          router.refresh();
           onOpenChange(false);
         } else {
-          toast.error(result.error || 'Erreur lors de l\'analyse de la facture');
+          toast.error(result.error || 'Erreur lors de l\'import de la facture');
           setIsUploading(false);
         }
       };

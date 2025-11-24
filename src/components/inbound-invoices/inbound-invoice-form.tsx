@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 import {
   IconDeviceFloppy,
   IconX,
@@ -97,7 +97,7 @@ export function InboundInvoiceForm({
   useEffect(() => {
     if (ocrData) {
       // Trouver le fournisseur correspondant
-      let matchedSupplier = suppliers.find(
+      const matchedSupplier = suppliers.find(
         (s) =>
           s.businessName.toLowerCase().includes(ocrData.supplierName.toLowerCase()) ||
           (ocrData.supplierSiret && s.siret === ocrData.supplierSiret)

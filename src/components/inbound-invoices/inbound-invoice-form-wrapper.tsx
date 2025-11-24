@@ -34,6 +34,7 @@ export function InboundInvoiceFormWrapper({ suppliers }: InboundInvoiceFormWrapp
   const [fileData, setFileData] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
 
+  // eslint-disable react-hooks/exhaustive-deps
   useEffect(() => {
     // Récupérer les données depuis sessionStorage
     const storedData = sessionStorage.getItem('invoiceUploadData');
