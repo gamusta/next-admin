@@ -20,3 +20,19 @@ export const lineItemTypeEnum = pgEnum('line_item_type', [
   'product',
   'service',
 ]);
+
+export const inboundInvoiceStatusEnum = pgEnum('inbound_invoice_status', [
+  'imported',  // À vérifier
+  'accepted',  // À payer
+  'paid',      // Payé
+  'refused',   // Refusé
+]);
+
+export const paymentMethodEnum = pgEnum('payment_method', [
+  'card',         // Carte Bancaire
+  'transfer',     // Virement
+  'debit',        // Prélèvement
+  'credit_note',  // Avoir
+  'check',        // Chèque
+  'cash',         // Espèce
+]);

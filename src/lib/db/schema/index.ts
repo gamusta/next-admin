@@ -11,3 +11,6 @@ export * from './naf-codes';
 export * from './legal-forms';
 export * from './suppliers';
 export * from './supplier-contacts';
+export * from './inbound-invoices';
+export * from './inbound-invoice-payments';
+export * from './inbound-invoice-comments';

@@ -7,7 +7,6 @@ Standards de code, bonnes pratiques et code review pour SaaS Finance.
 ### Architecture Next.js 16
 
 #### Server Components (par défaut)
-
 ```typescript
 // ✅ Bon : Server Component
 export default async function QuotesPage() {
@@ -17,7 +16,6 @@ export default async function QuotesPage() {
 ```
 
 #### Client Components (uniquement si nécessaire)
-
 ```typescript
 // ✅ Bon : Client Component pour interactivité
 'use client';
@@ -36,7 +34,6 @@ export function QuoteTitle({ title }: { title: string }) {
 ```
 
 #### Server Actions
-
 ```typescript
 // ✅ Bon : Server Action sécurisée
 'use server';
@@ -73,7 +70,6 @@ export async function createQuote(data: CreateQuoteInput) {
 #### ✅ Règles absolues
 
 **1. TOUJOURS filtrer par `companyId` dans les requêtes**
-
 ```typescript
 // ✅ Correct
 const quotes = await db.select()
@@ -85,7 +81,6 @@ const quotes = await db.select().from(quotes);
 ```
 
 **2. TOUJOURS valider le tenant context**
-
 ```typescript
 // ✅ Correct
 const { companyId, userId } = await getTenantContext();
@@ -96,7 +91,6 @@ const companyId = cookies().get('companyId')?.value; // Manipulable par l'utilis
 ```
 
 **3. TOUJOURS vérifier l'appartenance pour les updates/deletes**
-
 ```typescript
 // ✅ Correct
 async function deleteQuote(quoteId: number) {
@@ -125,7 +119,6 @@ async function deleteQuote(quoteId: number) {
 ### 📝 Naming conventions
 
 #### Fichiers et dossiers
-
 ```
 ✅ kebab-case
 - quote-form.tsx
@@ -138,7 +131,6 @@ async function deleteQuote(quoteId: number) {
 ```
 
 #### Code
-
 ```typescript
 // ✅ Composants : PascalCase
 export function QuoteForm() {}
@@ -167,7 +159,6 @@ enum QuoteStatus {
 ### 🎨 Conventions TypeScript
 
 #### Types stricts
-
 ```typescript
 // ✅ Bon : Types explicites
 type CreateQuoteInput = {
@@ -186,7 +177,6 @@ function handleApiResponse(data: unknown) {
 ```
 
 #### Imports organisés
-
 ```typescript
 // ✅ Bon : Groupés et triés
 // 1. External libs
@@ -211,7 +201,6 @@ import styles from './component.module.css';
 ### ♻️ Réutilisabilité
 
 #### Composants
-
 ```typescript
 // ✅ Bon : Composant réutilisable
 type PageHeaderProps = {
@@ -248,7 +237,6 @@ export function QuotesPageHeaderWithCreateButton() {
 ### 🔍 Avant de soumettre la PR
 
 **Développeur (vous)**
-
 - [ ] Code testé localement
 - [ ] `npm run build` passe sans erreurs
 - [ ] `npm run lint` passe sans warnings
@@ -261,7 +249,6 @@ export function QuotesPageHeaderWithCreateButton() {
 ### 🧐 Pendant la review (Reviewer)
 
 #### 1. Sécurité (PRIORITAIRE)
-
 - [ ] **Multi-tenant** : Tous les queries filtrent par `companyId`
 - [ ] **Auth** : Vérification JWT/session sur routes protégées
 - [ ] **Validation** : Inputs validés avec Zod
@@ -269,7 +256,6 @@ export function QuotesPageHeaderWithCreateButton() {
 - [ ] **Permissions** : Vérification des droits utilisateur (RBAC)
 
 #### 2. Architecture
-
 - [ ] Server Components utilisés par défaut
 - [ ] `'use client'` uniquement si nécessaire (state, events, hooks)
 - [ ] Server Actions pour mutations
@@ -277,7 +263,6 @@ export function QuotesPageHeaderWithCreateButton() {
 - [ ] Structure de dossiers respectée
 
 #### 3. Code Quality
-
 - [ ] Naming conventions respectées
 - [ ] Types TypeScript stricts (pas de `any`)
 - [ ] Imports organisés et triés
@@ -286,14 +271,12 @@ export function QuotesPageHeaderWithCreateButton() {
 - [ ] Commentaires seulement si nécessaire
 
 #### 4. Performance
-
 - [ ] Pas de fetch dans des loops
 - [ ] Images optimisées (Next Image)
 - [ ] Composants memoïsés si re-renders fréquents
 - [ ] Pagination pour listes longues
 
 #### 5. UX/UI
-
 - [ ] Responsive (mobile + desktop)
 - [ ] Loading states (Suspense, skeletons)
 - [ ] Error handling (try/catch, error boundaries)
@@ -301,7 +284,6 @@ export function QuotesPageHeaderWithCreateButton() {
 - [ ] Confirmation pour actions destructives
 
 #### 6. Tests (si applicable)
-
 - [ ] Tests unitaires pour logique complexe
 - [ ] Tests d'intégration pour Server Actions
 - [ ] Edge cases couverts
@@ -309,21 +291,18 @@ export function QuotesPageHeaderWithCreateButton() {
 ### 📊 Niveaux de sévérité
 
 **🔴 Bloquant (must fix)**
-
 - Faille de sécurité multi-tenant
 - Injection SQL/XSS
 - Build fail
 - Régression fonctionnelle
 
 **🟡 Important (should fix)**
-
 - Performance dégradée
 - Mauvaise UX
 - Code dupliqué important
 - Types `any` utilisés
 
 **🔵 Suggestion (nice to have)**
-
 - Naming améliorable
 - Refactoring possible
 - Documentation manquante
@@ -331,7 +310,6 @@ export function QuotesPageHeaderWithCreateButton() {
 ## 🎯 Critères de merge
 
 ### Obligatoires
-
 ✅ Review approuvée par au moins 1 personne
 ✅ Tous les commentaires 🔴 Bloquants résolus
 ✅ Build passe (`npm run build`)
@@ -340,7 +318,6 @@ export function QuotesPageHeaderWithCreateButton() {
 ✅ Pas de conflit avec `main`
 
 ### Recommandés
-
 🟡 Commentaires 🟡 Important résolus
 🟡 Tests ajoutés pour nouvelles features
 🟡 Documentation mise à jour si nécessaire
@@ -348,14 +325,12 @@ export function QuotesPageHeaderWithCreateButton() {
 ## 🚀 Best Practices
 
 ### 1. Multi-tenant first
-
 ```typescript
 // Toujours commencer par :
 const { companyId, userId } = await getTenantContext();
 ```
 
 ### 2. Validation systématique
-
 ```typescript
 import { z } from 'zod';
 
@@ -369,7 +344,6 @@ const validated = createQuoteSchema.parse(data);
 ```
 
 ### 3. Error handling
-
 ```typescript
 // ✅ Bon
 try {
@@ -385,7 +359,6 @@ const quote = await createQuote(data).catch(() => null);
 ```
 
 ### 4. Composants focalisés
-
 ```typescript
 // ✅ Bon : Une responsabilité
 function QuoteListItem({ quote }: { quote: Quote }) {

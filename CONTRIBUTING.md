@@ -5,7 +5,6 @@ Ce document décrit le workflow de développement collaboratif pour le projet Sa
 ## 🎯 Philosophie
 
 Nous adoptons une approche collaborative où chaque changement est :
-
 - **Planifié** : Réflexion avant action
 - **Isolé** : Une branche par feature/fix
 - **Reviewé** : Validation qualité systématique
@@ -16,7 +15,6 @@ Nous adoptons une approche collaborative où chaque changement est :
 ### 1. Branches
 
 #### Convention de nommage
-
 ```
 <type>/<description-courte>-<sessionId>
 
@@ -28,7 +26,6 @@ Exemples :
 ```
 
 #### Types de branches
-
 - `claude/*` : Développements assistés par Claude (sessionId obligatoire)
 - `feature/*` : Nouvelles fonctionnalités
 - `fix/*` : Corrections de bugs
@@ -48,7 +45,6 @@ Exemples :
 ```
 
 **Types autorisés :**
-
 - `feat` : Nouvelle fonctionnalité
 - `fix` : Correction de bug
 - `refactor` : Refactoring (sans changement fonctionnel)
@@ -58,7 +54,6 @@ Exemples :
 - `chore` : Tâches de maintenance (deps, config)
 
 **Exemples :**
-
 ```bash
 feat(quotes): add PDF export functionality
 fix(invoices): correct tax calculation for EU clients
@@ -68,7 +63,6 @@ chore(deps): update next to 16.1.0
 ```
 
 #### Bonnes pratiques
-
 - ✅ Commits atomiques (1 commit = 1 changement logique)
 - ✅ Messages en anglais, descriptifs
 - ✅ Référencer les issues si applicable (`fixes #123`)
@@ -95,18 +89,18 @@ chore(deps): update next to 16.1.0
    ```
 
 4. **Créer la PR** sur GitHub
-  - Utiliser le template (voir `.github/pull_request_template.md`)
-  - Remplir Summary, Changes, Test Plan
-  - Assigner un reviewer
+   - Utiliser le template (voir `.github/pull_request_template.md`)
+   - Remplir Summary, Changes, Test Plan
+   - Assigner un reviewer
 
 5. **Code Review** (voir DEVELOPMENT.md)
-  - Le reviewer commente et valide
-  - Corrections si nécessaire
-  - Approbation finale
+   - Le reviewer commente et valide
+   - Corrections si nécessaire
+   - Approbation finale
 
 6. **Merge**
-  - Squash and merge (commits condensés)
-  - Supprimer la branche après merge
+   - Squash and merge (commits condensés)
+   - Supprimer la branche après merge
 
 ## 🤝 Collaboration Claude/Développeur
 
@@ -115,14 +109,12 @@ chore(deps): update next to 16.1.0
 Ce mode vous permet de **maîtriser chaque ligne de code** :
 
 #### Rôle de Claude
-
 1. ✅ Crée la branche
 2. ✅ Propose le code dans des blocs
 3. ✅ Fournit le message de commit
 4. ✅ Fait la code review
 
 #### Votre rôle
-
 1. 👁️ **Lisez** le code proposé
 2. ✋ **Copiez** et intégrez manuellement
 3. 🧠 **Comprenez** ce qui est fait
@@ -149,7 +141,6 @@ git push -u origin claude/add-pdf-export-013vXPVu7tBeA2esGzo8TURz
 ```
 
 ### Avantages
-
 - 🎓 Vous **apprenez** en manipulant le code
 - 👁️ Vous **validez** chaque changement
 - 🔍 Vous **comprenez** la logique
