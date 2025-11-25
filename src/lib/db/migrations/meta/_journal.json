@@ -50,6 +50,13 @@
       "when": 1764023193846,
       "tag": "0006_invoice-supplier-infos",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1764064411225,
+      "tag": "0007_invoice-date-nullable",
+      "breakpoints": true
     }
   ]
 }

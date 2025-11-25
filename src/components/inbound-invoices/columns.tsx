@@ -66,6 +66,10 @@ export const columns: ColumnDef<InboundInvoice>[] = [
     accessorKey: "number",
     header: "Numéro facture",
     size: 150,
+    cell: ({ row }) => {
+      const number = row.getValue("number") as string
+      return number || "-"
+    },
     filterFn: (row, id, value) => {
       const searchValue = value.toLowerCase()
       const number = (row.getValue("number") as string).toLowerCase()
@@ -77,7 +81,7 @@ export const columns: ColumnDef<InboundInvoice>[] = [
     accessorKey: "issueDate",
     header: "Date facturation",
     size: 140,
-    cell: ({ row }) => row.original.issueDateFormatted,
+    cell: ({ row }) => row.original.issueDateFormatted || "-",
     filterFn: (row, id, value) => {
       if (!value || (!value.from && !value.to)) return true
       const rowDate = new Date(row.getValue(id))
@@ -98,7 +102,7 @@ export const columns: ColumnDef<InboundInvoice>[] = [
     accessorKey: "dueDate",
     header: "Date échéance",
     size: 140,
-    cell: ({ row }) => row.original.dueDateFormatted,
+    cell: ({ row }) => row.original.dueDateFormatted || "-",
     filterFn: (row, id, value) => {
       if (!value || (!value.from && !value.to)) return true
       const rowDate = new Date(row.getValue(id))
@@ -120,9 +124,10 @@ export const columns: ColumnDef<InboundInvoice>[] = [
     header: () => <div className="text-right">Total TTC</div>,
     size: 120,
     cell: ({ row }) => {
+      const amount = row.getValue("totalAmount") as string
       return (
         <div className="text-right font-medium">
-          {formatCurrency(row.getValue("totalAmount"))}
+          {amount && parseFloat(amount) > 0 ? formatCurrency(amount) : "-"}
         </div>
       )
     },

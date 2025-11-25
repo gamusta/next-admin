@@ -40,16 +40,16 @@ export const paymentMethodLabels: Record<PaymentMethod, string> = {
 
 // Zod schemas pour validation
 export const createInboundInvoiceSchema = z.object({
-  supplierId: z.string().uuid('ID fournisseur invalide'),
-  number: z.string().min(1, 'Numéro de facture requis'),
-  issueDate: z.coerce.date({ message: 'Date de facturation requise' }),
-  dueDate: z.coerce.date({ message: 'Date d\'échéance requise' }),
-  subtotal: z.number().nonnegative('Le montant HT doit être positif'),
-  taxAmount: z.number().nonnegative('Le montant de TVA doit être positif'),
-  totalAmount: z.number().nonnegative('Le montant TTC doit être positif'),
+  supplierId: z.uuid('ID fournisseur invalide').nullable(),
+  number: z.string().min(1, 'Numéro de facture requis').nullable(),
+  issueDate: z.coerce.date({ message: 'Date de facturation requise' }).nullable(),
+  dueDate: z.coerce.date({ message: 'Date d\'échéance requise' }).nullable(),
+  subtotal: z.number().nonnegative('Le montant HT doit être positif').nullable(),
+  taxAmount: z.number().nonnegative('Le montant de TVA doit être positif').nullable(),
+  totalAmount: z.number().nonnegative('Le montant TTC doit être positif').nullable(),
   notes: z.string().optional(),
 }).refine(
-  (data) => data.dueDate >= data.issueDate,
+  (data) => !data.dueDate || !data.issueDate || data.dueDate >= data.issueDate,
   {
     message: 'La date d\'échéance doit être postérieure à la date de facturation',
     path: ['dueDate'],
@@ -63,7 +63,7 @@ export type UpdateInboundInvoiceInput = z.infer<typeof updateInboundInvoiceSchem
 
 // Schema pour paiements
 export const createPaymentSchema = z.object({
-  inboundInvoiceId: z.string().uuid('ID facture invalide'),
+  inboundInvoiceId: z.uuid('ID facture invalide'),
   amount: z.number().positive('Le montant doit être positif'),
   paymentDate: z.coerce.date({ message: 'Date de paiement requise' }),
   paymentMethod: z.enum(['card', 'transfer', 'debit', 'credit_note', 'check', 'cash']),
@@ -75,7 +75,7 @@ export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;
 
 // Schema pour commentaires
 export const createCommentSchema = z.object({
-  inboundInvoiceId: z.string().uuid('ID facture invalide'),
+  inboundInvoiceId: z.uuid('ID facture invalide'),
   content: z.string().min(1, 'Le commentaire ne peut pas être vide'),
 });
 

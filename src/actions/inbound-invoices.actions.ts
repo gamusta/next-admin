@@ -41,11 +41,11 @@ export async function getInboundInvoices() {
   return result.map((invoice) => ({
     ...invoice,
     supplierName: invoice.supplierName || invoice.supplierNameExtracted || 'À définir',
-    issueDateFormatted: format(invoice.issueDate, 'dd/MM/yyyy', { locale: fr }),
-    dueDateFormatted: format(invoice.dueDate, 'dd/MM/yyyy', { locale: fr }),
-    // Garder dates ISO pour filtres
-    issueDate: invoice.issueDate.toISOString(),
-    dueDate: invoice.dueDate.toISOString(),
+    issueDateFormatted: invoice.issueDate ? format(invoice.issueDate, 'dd/MM/yyyy', { locale: fr }) : '-',
+    dueDateFormatted: invoice.dueDate ? format(invoice.dueDate, 'dd/MM/yyyy', { locale: fr }) : '-',
+    // Garder dates ISO pour filtres (ou null si pas de date)
+    issueDate: invoice.issueDate ? invoice.issueDate.toISOString() : '',
+    dueDate: invoice.dueDate ? invoice.dueDate.toISOString() : '',
   }));
 }
 
@@ -87,23 +87,24 @@ export async function getInboundInvoiceById(invoiceId: string) {
 
 // Schema Zod pour les données OCR extraites
 const ocrDataSchema = z.object({
-  supplierName: z.string(),
-  supplierSiret: z.string().optional(),
-  supplierAddress: z.string().optional(),
-  supplierCity: z.string().optional(),
-  supplierPostalCode: z.string().optional(),
-  supplierPhone: z.string().optional(),
-  supplierEmail: z.string().optional(),
-  supplierBankName: z.string().optional(),
-  supplierBic: z.string().optional(),
-  supplierIban: z.string().optional(),
-  invoiceNumber: z.string(),
-  issueDate: z.string(), // Format ISO ou DD/MM/YYYY
-  dueDate: z.string().optional(),
-  subtotal: z.number(),
-  taxAmount: z.number(),
-  totalAmount: z.number(),
-  currency: z.string().default('EUR'),
+  supplierName: z.string().nullable(),
+  supplierSiret: z.string().nullable().optional(),
+  supplierAddress: z.string().nullable().optional(),
+  supplierCity: z.string().nullable().optional(),
+  supplierPostalCode: z.string().nullable().optional(),
+  supplierPhone: z.string().nullable().optional(),
+  supplierEmail: z.string().nullable().optional(),
+  supplierBankName: z.string().nullable().optional(),
+  supplierBic: z.string().nullable().optional(),
+  supplierIban: z.string().nullable().optional(),
+  invoiceNumber: z.string().nullable(),
+  issueDate: z.string().nullable(), // Format ISO ou DD/MM/YYYY
+  dueDate: z.string().nullable().optional(),
+  subtotal: z.number().nullable(),
+  taxAmount: z.number().nullable(),
+  totalAmount: z.number().nullable(),
+  currency: z.string().nullable().optional(),
+  confidence: z.enum(['high', 'medium', 'low']).nullable().optional(),
 });
 
 type OCRData = z.infer<typeof ocrDataSchema>;
@@ -182,14 +183,19 @@ export async function analyzeInvoiceWithOCR(input: {
   "subtotal": montant HT en nombre,
   "taxAmount": montant TVA en nombre,
   "totalAmount": montant TTC en nombre,
-  "currency": "EUR"
+  "currency": "EUR ou autre devise",
+  "confidence": "high|medium|low"
 }
 
 IMPORTANT:
 - Réponds UNIQUEMENT avec le JSON, sans texte avant ou après
 - Les montants doivent être des nombres (pas de strings)
 - Les dates doivent être au format YYYY-MM-DD
-- Si une information est manquante, utilise null ou une chaîne vide selon le type`,
+- Si une information est manquante, utilise null
+- Champ "confidence" : évalue ta confiance globale sur l'extraction
+  - "high" : facture claire, toutes infos critiques lisibles
+  - "medium" : facture acceptable, quelques zones floues
+  - "low" : facture difficile, beaucoup d'incertitudes`,
             },
           ],
         },
@@ -258,12 +264,12 @@ export async function createInboundInvoice(
     .values({
       companyId,
       supplierId: input.supplierId || null,
-      number: input.number,
-      issueDate: input.issueDate,
-      dueDate: input.dueDate,
-      subtotal: input.subtotal.toString(),
-      taxAmount: input.taxAmount.toString(),
-      totalAmount: input.totalAmount.toString(),
+      number: input.number || '-',
+      issueDate: input.issueDate || null,
+      dueDate: input.dueDate || null,
+      subtotal: input.subtotal?.toString() || '0',
+      taxAmount: input.taxAmount?.toString() || '0',
+      totalAmount: input.totalAmount?.toString() || '0',
       status: 'imported',
       notes: input.notes || null,
       fileUrl: fileUrl || null,
@@ -421,22 +427,13 @@ export async function uploadAndCreateInvoice(input: {
     const ocrData = ocrResult.data;
 
     const invoiceData: CreateInboundInvoiceInput = {
-      supplierId: '', // Pas de supplier pour l'instant
+      supplierId: null,
       number: ocrData.invoiceNumber,
-      issueDate: new Date(ocrData.issueDate),
-      dueDate: ocrData.dueDate
-        ? new Date(ocrData.dueDate)
-        : (() => {
-            const dueDate = new Date(ocrData.issueDate);
-            dueDate.setDate(dueDate.getDate() + 30);
-            return dueDate;
-          })(),
+      issueDate: ocrData.issueDate ? new Date(ocrData.issueDate) : null,
+      dueDate: ocrData.dueDate ? new Date(ocrData.dueDate) : null,
       subtotal: ocrData.subtotal,
       taxAmount: ocrData.taxAmount,
       totalAmount: ocrData.totalAmount,
-      notes: ocrData.supplierAddress
-        ? `Adresse: ${ocrData.supplierAddress}`
-        : undefined,
     };
 
     const invoice = await createInboundInvoice(

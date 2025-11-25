@@ -12,8 +12,8 @@ export const inboundInvoices = pgTable('inbound_invoices', {
   number: text('number').notNull(),
 
   // Dates
-  issueDate: timestamp('issue_date').notNull(), // Date de facturation
-  dueDate: timestamp('due_date').notNull(),     // Date d'échéance
+  issueDate: timestamp('issue_date'), // Date de facturation
+  dueDate: timestamp('due_date'),     // Date d'échéance
 
   // Montants
   subtotal: numeric('subtotal', { precision: 10, scale: 2 }).notNull(),
