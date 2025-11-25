@@ -2,7 +2,10 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
+import { IconEdit } from "@tabler/icons-react"
+import Link from "next/link"
 
 export type InboundInvoice = {
   id: string
@@ -63,6 +66,10 @@ export const columns: ColumnDef<InboundInvoice>[] = [
     accessorKey: "number",
     header: "Numéro facture",
     size: 150,
+    cell: ({ row }) => {
+      const number = row.getValue("number") as string
+      return number || "-"
+    },
     filterFn: (row, id, value) => {
       const searchValue = value.toLowerCase()
       const number = (row.getValue("number") as string).toLowerCase()
@@ -74,7 +81,7 @@ export const columns: ColumnDef<InboundInvoice>[] = [
     accessorKey: "issueDate",
     header: "Date facturation",
     size: 140,
-    cell: ({ row }) => row.original.issueDateFormatted,
+    cell: ({ row }) => row.original.issueDateFormatted || "-",
     filterFn: (row, id, value) => {
       if (!value || (!value.from && !value.to)) return true
       const rowDate = new Date(row.getValue(id))
@@ -95,7 +102,7 @@ export const columns: ColumnDef<InboundInvoice>[] = [
     accessorKey: "dueDate",
     header: "Date échéance",
     size: 140,
-    cell: ({ row }) => row.original.dueDateFormatted,
+    cell: ({ row }) => row.original.dueDateFormatted || "-",
     filterFn: (row, id, value) => {
       if (!value || (!value.from && !value.to)) return true
       const rowDate = new Date(row.getValue(id))
@@ -117,9 +124,10 @@ export const columns: ColumnDef<InboundInvoice>[] = [
     header: () => <div className="text-right">Total TTC</div>,
     size: 120,
     cell: ({ row }) => {
+      const amount = row.getValue("totalAmount") as string
       return (
         <div className="text-right font-medium">
-          {formatCurrency(row.getValue("totalAmount"))}
+          {amount && parseFloat(amount) > 0 ? formatCurrency(amount) : "-"}
         </div>
       )
     },
@@ -129,6 +137,26 @@ export const columns: ColumnDef<InboundInvoice>[] = [
       if (min !== undefined && amount < min) return false
       if (max !== undefined && amount > max) return false
       return true
+    },
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    size: 100,
+    cell: ({ row }) => {
+      const invoice = row.original
+
+      // Afficher bouton éditer seulement pour status 'imported'
+      if (invoice.status !== "imported") return null
+
+      return (
+        <Link href={`/admin/inbound-invoices/${invoice.id}/edit`}>
+          <Button variant="ghost" size="sm">
+            <IconEdit className="mr-2 size-4" />
+            Éditer
+          </Button>
+        </Link>
+      )
     },
   },
 ]

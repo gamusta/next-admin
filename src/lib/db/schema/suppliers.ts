@@ -14,6 +14,8 @@ export const suppliers = pgTable('suppliers', {
   siret: text('siret'), // 14 caractères
   hasSiret: boolean('has_siret').notNull().default(true), // Checkbox inversée
   iban: text('iban'),
+  bic: text('bic'),
+  bankName: text('bank_name'),
   vatNumber: text('vat_number'), // N° de TVA
   tradeName: text('trade_name'), // Nom commercial
   nafCodeId: uuid('naf_code_id').references(() => nafCodes.id),

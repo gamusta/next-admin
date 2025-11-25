@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, numeric, index, unique } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, numeric, index, unique, jsonb } from 'drizzle-orm/pg-core';
 import { companies } from './companies';
 import { suppliers } from './suppliers';
 import { inboundInvoiceStatusEnum } from './enums';
@@ -6,14 +6,14 @@ import { inboundInvoiceStatusEnum } from './enums';
 export const inboundInvoices = pgTable('inbound_invoices', {
   id: uuid('id').primaryKey().defaultRandom(),
   companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
-  supplierId: uuid('supplier_id').notNull().references(() => suppliers.id, { onDelete: 'restrict' }),
+  supplierId: uuid('supplier_id').references(() => suppliers.id, { onDelete: 'restrict' }),
 
   // Numéro facture fournisseur (leur numéro, pas le nôtre)
   number: text('number').notNull(),
 
   // Dates
-  issueDate: timestamp('issue_date').notNull(), // Date de facturation
-  dueDate: timestamp('due_date').notNull(),     // Date d'échéance
+  issueDate: timestamp('issue_date'), // Date de facturation
+  dueDate: timestamp('due_date'),     // Date d'échéance
 
   // Montants
   subtotal: numeric('subtotal', { precision: 10, scale: 2 }).notNull(),
@@ -31,6 +31,15 @@ export const inboundInvoices = pgTable('inbound_invoices', {
 
   // Notes (notes générales sur la facture)
   notes: text('notes'),
+
+  // Fichier uploadé (Supabase Storage URL)
+  fileUrl: text('file_url'),
+
+  // Données OCR brutes (JSON)
+  ocrData: jsonb('ocr_data'),
+
+  // Nom fournisseur extrait (pour affichage avant association supplier)
+  supplierNameExtracted: text('supplier_name_extracted'),
 
   // Timestamps
   createdAt: timestamp('created_at').defaultNow().notNull(),
