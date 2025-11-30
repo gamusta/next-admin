@@ -27,9 +27,22 @@ interface SupplierDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   supplier: Supplier | null;
+  invoiceId?: string;
+  ocrData?: {
+    businessName?: string;
+    siret?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    postalCode?: string;
+    iban?: string;
+    bic?: string;
+    bankName?: string;
+  };
 }
 
-export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogProps) {
+export function SupplierDialog({ open, onOpenChange, supplier, invoiceId, ocrData }: SupplierDialogProps) {
   const [isPending, startTransition] = useTransition();
   const [activeTab, setActiveTab] = useState('info');
 
@@ -42,6 +55,7 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
   } = useForm<CreateSupplierInput>({
     resolver: zodResolver(CreateSupplierSchema),
     defaultValues: {
+      businessName: '',
       country: 'France',
       contacts: [],
     },
@@ -87,17 +101,17 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
       });
     } else if (open && !supplier) {
       reset({
-        businessName: '',
-        siret: '',
-        iban: '',
+        businessName: ocrData?.businessName || '',
+        siret: ocrData?.siret || '',
+        iban: ocrData?.iban || '',
         vatNumber: '',
         tradeName: '',
-        email: '',
-        phone: '',
-        address: '',
+        email: ocrData?.email || '',
+        phone: ocrData?.phone || '',
+        address: ocrData?.address || '',
         addressComplement: '',
-        postalCode: '',
-        city: '',
+        postalCode: ocrData?.postalCode || '',
+        city: ocrData?.city || '',
         country: 'France',
         notes: '',
         contacts: [],
@@ -113,8 +127,15 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
           await updateSupplier({ ...data, id: supplier.id });
           toast.success('Fournisseur modifié');
         } else {
-          await createSupplier(data);
-          toast.success('Fournisseur créé');
+          const newSupplier = await createSupplier(data);
+
+          // Si invoiceId fourni, associer le supplier à l'invoice
+          if (invoiceId && newSupplier) {
+            const { updateInboundInvoiceSupplier } = await import('@/actions/inbound-invoices.actions');
+            await updateInboundInvoiceSupplier(invoiceId, newSupplier.id);
+          }
+
+          toast.success(invoiceId ? 'Fournisseur créé et associé' : 'Fournisseur créé');
         }
         onOpenChange(false);
       } catch (error) {

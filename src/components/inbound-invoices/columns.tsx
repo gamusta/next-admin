@@ -19,7 +19,8 @@ export type InboundInvoice = {
   totalAmount: string
   status: "imported" | "accepted" | "paid" | "refused"
   supplierName: string
-  supplierId: string
+  supplierId: string | null
+  supplierNameExtracted: string | null
 }
 
 const statusLabels: Record<InboundInvoice["status"], string> = {
