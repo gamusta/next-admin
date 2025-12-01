@@ -125,6 +125,7 @@ export function UploadInvoiceDialog({ open, onOpenChange }: UploadInvoiceDialogP
   const handleClose = () => {
     if (!isUploading) {
       setFile(null);
+      setIsUploading(false);
       onOpenChange(false);
     }
   };

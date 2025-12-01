@@ -386,6 +386,57 @@ export async function addInboundInvoiceComment(input: CreateCommentInput) {
   return comment;
 }
 
+// Associer/modifier supplier d'une invoice
+export async function updateInboundInvoiceSupplier(
+  invoiceId: string,
+  supplierId: string
+) {
+  const { companyId } = await getTenantContext();
+
+  // Vérif invoice appartient company
+  const [invoice] = await db
+    .select()
+    .from(inboundInvoices)
+    .where(
+      and(
+        eq(inboundInvoices.id, invoiceId),
+        eq(inboundInvoices.companyId, companyId)
+      )
+    );
+
+  if (!invoice) {
+    throw new Error('Facture introuvable');
+  }
+
+  // Vérif supplier appartient company
+  const [supplier] = await db
+    .select()
+    .from(suppliers)
+    .where(
+      and(
+        eq(suppliers.id, supplierId),
+        eq(suppliers.companyId, companyId)
+      )
+    );
+
+  if (!supplier) {
+    throw new Error('Fournisseur introuvable');
+  }
+
+  // Update supplierId
+  await db
+    .update(inboundInvoices)
+    .set({
+      supplierId,
+      updatedAt: new Date(),
+    })
+    .where(eq(inboundInvoices.id, invoiceId));
+
+  revalidatePath('/admin/inbound-invoices');
+  revalidatePath(`/admin/inbound-invoices/${invoiceId}/edit`);
+  return { success: true };
+}
+
 /**
  * Flow complet upload : OCR + Upload S3 + Create invoice
  * Appelé depuis upload dialog, créé facture directement SANS fournisseur

@@ -82,13 +82,13 @@ export function InboundInvoiceForm({
   const form = useForm<CreateInboundInvoiceInput>({
     resolver: zodResolver(createInboundInvoiceSchema),
     defaultValues: {
-      supplierId: '',
-      number: '',
-      issueDate: new Date(),
-      dueDate: new Date(),
-      subtotal: 0,
-      taxAmount: 0,
-      totalAmount: 0,
+      supplierId: null,
+      number: null,
+      issueDate: null,
+      dueDate: null,
+      subtotal: null,
+      taxAmount: null,
+      totalAmount: null,
       notes: '',
     },
   });
@@ -226,7 +226,7 @@ export function InboundInvoiceForm({
                       <FormLabel>Fournisseur *</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        value={field.value}
+                        value={field.value || undefined}
                         disabled={!!createdInvoiceId}
                       >
                         <FormControl>
@@ -263,6 +263,7 @@ export function InboundInvoiceForm({
                       <FormControl>
                         <Input
                           {...field}
+                          value={field.value || ''}
                           placeholder="FAC-2024-001"
                           disabled={!!createdInvoiceId}
                         />
@@ -343,10 +344,13 @@ export function InboundInvoiceForm({
                           <Input
                             type="number"
                             step="0.01"
-                            {...field}
+                            value={field.value ?? ''}
                             onChange={(e) =>
                               field.onChange(parseFloat(e.target.value) || 0)
                             }
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
                             disabled={!!createdInvoiceId}
                           />
                         </FormControl>
@@ -365,10 +369,13 @@ export function InboundInvoiceForm({
                           <Input
                             type="number"
                             step="0.01"
-                            {...field}
+                            value={field.value ?? ''}
                             onChange={(e) =>
                               field.onChange(parseFloat(e.target.value) || 0)
                             }
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
                             disabled={!!createdInvoiceId}
                           />
                         </FormControl>
@@ -387,10 +394,13 @@ export function InboundInvoiceForm({
                           <Input
                             type="number"
                             step="0.01"
-                            {...field}
+                            value={field.value ?? ''}
                             onChange={(e) =>
                               field.onChange(parseFloat(e.target.value) || 0)
                             }
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
                             disabled={!!createdInvoiceId}
                           />
                         </FormControl>

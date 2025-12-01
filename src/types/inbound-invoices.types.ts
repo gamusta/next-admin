@@ -42,8 +42,8 @@ export const paymentMethodLabels: Record<PaymentMethod, string> = {
 export const createInboundInvoiceSchema = z.object({
   supplierId: z.uuid('ID fournisseur invalide').nullable(),
   number: z.string().min(1, 'Numéro de facture requis').nullable(),
-  issueDate: z.coerce.date({ message: 'Date de facturation requise' }).nullable(),
-  dueDate: z.coerce.date({ message: 'Date d\'échéance requise' }).nullable(),
+  issueDate: z.date({ message: 'Date de facturation requise' }).nullable(),
+  dueDate: z.date({ message: 'Date d\'échéance requise' }).nullable(),
   subtotal: z.number().nonnegative('Le montant HT doit être positif').nullable(),
   taxAmount: z.number().nonnegative('Le montant de TVA doit être positif').nullable(),
   totalAmount: z.number().nonnegative('Le montant TTC doit être positif').nullable(),
