@@ -7,13 +7,13 @@ import { uploadInvoiceFile } from '@/lib/storage';
 import { eq, desc, and } from 'drizzle-orm';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import Anthropic from '@anthropic-ai/sdk';
-import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
+import { getOCROrchestrator } from '@/lib/ocr/ocr-orchestrator';
 import type {
   CreateInboundInvoiceInput,
   CreateCommentInput,
 } from '@/types/inbound-invoices.types';
+import type { OCRData } from '@/types/ocr.types';
 
 export async function getInboundInvoices() {
   const { companyId } = await getTenantContext();
@@ -85,157 +85,54 @@ export async function getInboundInvoiceById(invoiceId: string) {
   return invoice;
 }
 
-// Schema Zod pour les données OCR extraites
-const ocrDataSchema = z.object({
-  supplierName: z.string().nullable(),
-  supplierSiret: z.string().nullable().optional(),
-  supplierAddress: z.string().nullable().optional(),
-  supplierCity: z.string().nullable().optional(),
-  supplierPostalCode: z.string().nullable().optional(),
-  supplierPhone: z.string().nullable().optional(),
-  supplierEmail: z.string().nullable().optional(),
-  supplierBankName: z.string().nullable().optional(),
-  supplierBic: z.string().nullable().optional(),
-  supplierIban: z.string().nullable().optional(),
-  invoiceNumber: z.string().nullable(),
-  issueDate: z.string().nullable(), // Format ISO ou DD/MM/YYYY
-  dueDate: z.string().nullable().optional(),
-  subtotal: z.number().nullable(),
-  taxAmount: z.number().nullable(),
-  totalAmount: z.number().nullable(),
-  currency: z.string().nullable().optional(),
-  confidence: z.enum(['high', 'medium', 'low']).nullable().optional(),
-});
-
-type OCRData = z.infer<typeof ocrDataSchema>;
-
-// Fonction pour analyser une facture avec OCR Anthropic
+/**
+ * Analyser facture avec OCR (avec fallback automatique)
+ * Utilise orchestrateur pour tenter plusieurs extracteurs
+ */
 export async function analyzeInvoiceWithOCR(input: {
   fileBase64: string;
   fileName: string;
   fileType: string;
-}): Promise<{ success: boolean; data?: OCRData; error?: string }> {
-  try {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      return {
-        success: false,
-        error: 'ANTHROPIC_API_KEY non configurée',
-      };
-    }
-
-    const anthropic = new Anthropic({
-      apiKey,
-    });
-
-    // Extraire le base64 pur (sans le préfixe data:...)
-    const base64Data = input.fileBase64.includes('base64,')
-      ? input.fileBase64.split('base64,')[1]
-      : input.fileBase64;
-
-    // Déterminer le media_type
-    let mediaType: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp' = 'image/jpeg';
-    if (input.fileType === 'image/png') {
-      mediaType = 'image/png';
-    } else if (input.fileType === 'application/pdf') {
-      // Note: Anthropic API ne supporte pas directement les PDFs
-      // Il faudrait convertir le PDF en images d'abord
-      // Pour l'instant, on retourne une erreur
-      return {
-        success: false,
-        error: 'Les fichiers PDF doivent être convertis en images. Veuillez utiliser une image JPG ou PNG.',
-      };
-    }
-
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: mediaType,
-                data: base64Data,
-              },
-            },
-            {
-              type: 'text',
-              text: `Analyse cette facture d'achat et extrait les informations suivantes au format JSON strict (sans markdown, juste le JSON brut) :
-
-{
-  "supplierName": "Nom du fournisseur",
-  "supplierSiret": "Numéro SIRET si présent",
-  "supplierAddress": "Adresse complète du fournisseur",
-  "supplierCity": "Ville du fournisseur",
-  "supplierPostalCode": "Code postal du fournisseur",
-  "supplierPhone": "Téléphone du fournisseur",
-  "supplierEmail": "Email du fournisseur",
-  "supplierBankName": "Nom banque du fournisseur",
-  "supplierBic": "BIC du fournisseur",
-  "supplierIban": "IBAN du fournisseur",
-  "invoiceNumber": "Numéro de facture",
-  "issueDate": "Date de facturation au format YYYY-MM-DD",
-  "dueDate": "Date d'échéance au format YYYY-MM-DD (si présente)",
-  "subtotal": montant HT en nombre,
-  "taxAmount": montant TVA en nombre,
-  "totalAmount": montant TTC en nombre,
-  "currency": "EUR ou autre devise",
-  "confidence": "high|medium|low"
+}): Promise<{ success: boolean; data?: OCRData; error?: string; extractorUsed?: string; rawOcrData?: unknown }> {
+  const orchestrator = getOCROrchestrator('inbound-invoice');
+  const result = await orchestrator.extract(input);
+  return {
+    success: result.success,
+    data: result.data as OCRData,
+    error: result.error,
+    extractorUsed: result.extractorUsed,
+    rawOcrData: result.rawOcrData,
+  };
 }
 
-IMPORTANT:
-- Réponds UNIQUEMENT avec le JSON, sans texte avant ou après
-- Les montants doivent être des nombres (pas de strings)
-- Les dates doivent être au format YYYY-MM-DD
-- Si une information est manquante, utilise null
-- Champ "confidence" : évalue ta confiance globale sur l'extraction
-  - "high" : facture claire, toutes infos critiques lisibles
-  - "medium" : facture acceptable, quelques zones floues
-  - "low" : facture difficile, beaucoup d'incertitudes`,
-            },
-          ],
-        },
-      ],
-    });
+/**
+ * Analyser avec extracteur spécifique (pas de fallback)
+ */
+export async function analyzeInvoiceWithExtractor(
+  input: {
+    fileBase64: string;
+    fileName: string;
+    fileType: string;
+  },
+  extractorName: string
+): Promise<{ success: boolean; data?: OCRData; error?: string; extractorUsed?: string; rawOcrData?: unknown }> {
+  const orchestrator = getOCROrchestrator('inbound-invoice');
+  const result = await orchestrator.extractWith(extractorName, input);
+  return {
+    success: result.success,
+    data: result.data as OCRData,
+    error: result.error,
+    extractorUsed: result.extractorUsed,
+    rawOcrData: result.rawOcrData,
+  };
+}
 
-    // Extraire le texte de la réponse
-    const responseText = message.content[0]?.type === 'text'
-      ? message.content[0].text
-      : '';
-
-    if (!responseText) {
-      return {
-        success: false,
-        error: 'Aucune réponse reçue de l\'API',
-      };
-    }
-
-    // Parser le JSON (enlever les éventuels backticks markdown)
-    const cleanJson = responseText
-      .replace(/```json\n?/g, '')
-      .replace(/```\n?/g, '')
-      .trim();
-
-    const parsedData = JSON.parse(cleanJson);
-
-    // Valider avec Zod
-    const validatedData = ocrDataSchema.parse(parsedData);
-
-    return {
-      success: true,
-      data: validatedData,
-    };
-  } catch (error) {
-    console.error('OCR Analysis error:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Erreur lors de l\'analyse OCR',
-    };
-  }
+/**
+ * Lister extracteurs disponibles
+ */
+export async function getAvailableExtractors(): Promise<string[]> {
+  const orchestrator = getOCROrchestrator('inbound-invoice');
+  return await orchestrator.getAvailableExtractors();
 }
 
 // Créer une nouvelle facture d'achat (imported)
